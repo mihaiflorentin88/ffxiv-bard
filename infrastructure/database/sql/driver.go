@@ -2,7 +2,10 @@ package database
 
 import (
 	"database/sql"
-	port "ffxvi-bard/port/contract"
+	"ffxvi-bard/config"
+	"ffxvi-bard/port/contract"
+	"sync"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -11,27 +14,65 @@ type sqliteDriver struct {
 	path     string
 }
 
-func NewSqlDriver(database string) port.SqlDriverInterface {
-	return sqliteDriver{database: database}
+var (
+	instance *sql.DB
+	once     sync.Once
+	mu       sync.Mutex
+)
+
+func NewSqlDriver(cfg *config.DatabaseConfig) (contract.DatabaseDriverInterface, error) {
+	var err error
+	once.Do(func() {
+		instance, err = sql.Open(cfg.Database, cfg.Path)
+		if err != nil {
+			return
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &sqliteDriver{database: cfg.Database, path: cfg.Path}, nil
 }
 
-func (d sqliteDriver) connection() (*sql.DB, error) {
-	db, err := sql.Open(d.database, d.path)
+func (d *sqliteDriver) getConnection() (*sql.DB, error) {
+	mu.Lock()
+	defer mu.Unlock()
+	err := instance.Ping()
 	if err != nil {
-		return nil, err
+		instance, err = sql.Open(d.database, d.path)
+		if err != nil {
+			return nil, err
+		}
 	}
-	defer db.Close()
-	return db, nil
+	return instance, nil
 }
 
-func (d sqliteDriver) Execute(query string, args string) (sql.Result, error) {
-	db, err := d.connection()
+func (d *sqliteDriver) Execute(query string, args ...interface{}) (sql.Result, error) {
+	db, err := d.getConnection()
 	if err != nil {
 		return nil, err
 	}
-	result, err := db.Exec(query, args)
+	return db.Exec(query, args...)
+}
+
+func (d *sqliteDriver) FetchOne(query string, args ...interface{}) (*sql.Row, error) {
+	db, err := d.getConnection()
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	return db.QueryRow(query, args...), nil
+}
+
+func (d *sqliteDriver) FetchMany(query string, args ...interface{}) (*sql.Rows, error) {
+	db, err := d.getConnection()
+	if err != nil {
+		return nil, err
+	}
+	return db.Query(query, args...)
+}
+
+func (d *sqliteDriver) Close() {
+	if instance != nil {
+		instance.Close()
+	}
 }

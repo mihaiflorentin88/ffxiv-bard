@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"ffxvi-bard/config"
+	"ffxvi-bard/container"
 	database "ffxvi-bard/infrastructure/database/sql/migration"
 	"github.com/spf13/cobra"
 )
@@ -13,15 +13,11 @@ var migrateCMD = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		up, _ := cmd.Flags().GetBool("up")
 		down, _ := cmd.Flags().GetBool("down")
-		//version, _ := cmd.Flags().GetUint("version")
-		config, err := config.NewConfig()
+		config := container.GetConfig()
 		if !up && !down {
 			panic("Please provide a command type. Supported commands `up`, `down`")
 		}
-		if err != nil {
-			panic(err)
-		}
-		driver := database.NewMigrationDriver(config.Database.Database, config.Database.Path)
+		driver := database.NewMigrationDriver(&config.Database)
 		var command string
 		if up {
 			command = "up"
@@ -29,10 +25,6 @@ var migrateCMD = &cobra.Command{
 		if down {
 			command = "down"
 		}
-		//if version != 0 {
-		//	driver.ExecuteOne(command, version)
-		//	return
-		//}
 		driver.Execute(command)
 	},
 }
@@ -46,7 +38,6 @@ func init() {
 func initMigrationlags() {
 	migrateCMD.PersistentFlags().Bool("up", false, "Up migration")
 	migrateCMD.PersistentFlags().Bool("down", false, "Down migration")
-	//migrateCMD.PersistentFlags().Uint("version", 0, "Migration version")
 }
 
 func initRequiredMigrationFlags() {

@@ -10,12 +10,12 @@ import (
 )
 
 type discordOauth struct {
-	config config.DiscordConfig
+	config *config.DiscordConfig
 	auth   *oauth2.Config
 	state  string
 }
 
-func NewDiscordOauth(config config.DiscordConfig) contract.Oauth {
+func NewDiscordOauth(config *config.DiscordConfig) contract.Oauth {
 	return &discordOauth{config: config}
 }
 

@@ -50,7 +50,7 @@ type song struct {
 	Date          date.Date
 }
 
-func NewSong(title string, artist string, ensembleSize EnsembleSize, genre []Genre, comments []contract.CommentInterface, file []byte, uploader user.User, songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) (*song, error) {
+func NewSong(title string, artist string, ensembleSize EnsembleSize, genre []Genre, comments []contract.CommentInterface, file []byte, uploader user.User, songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) (contract.SongInterface, error) {
 	song := &song{}
 	err := song.SetTitle(title)
 	if err != nil {

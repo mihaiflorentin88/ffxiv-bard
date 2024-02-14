@@ -1,6 +1,12 @@
 package main
 
-import "ffxvi-bard/cmd/cli"
+import (
+	"ffxvi-bard/cmd/cli"
+	"ffxvi-bard/container"
+	"os"
+	"os/signal"
+	"syscall"
+)
 
 //func main() {
 //	config.NewConfig("test", "/tmp/bard/unprocessed", "/tmp/bard/processed", 1000000, filesystem.LocalFileSystem{})
@@ -26,4 +32,14 @@ import "ffxvi-bard/cmd/cli"
 
 func main() {
 	cli.Execute()
+
+	connection, err := container.GetDatabaseDriver()
+	if err != nil {
+		return
+	}
+	defer connection.Close()
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	<-signals
 }

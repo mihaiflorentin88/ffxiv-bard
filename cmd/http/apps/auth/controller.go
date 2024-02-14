@@ -25,7 +25,7 @@ func NewAuth(router *gin.Engine, staticFs *embed.FS, errorHandler contract.HttpE
 	if err != nil {
 		panic("Cannot load application configuration")
 	}
-	oauth := oauth2.NewDiscordOauth(appConfig.Discord)
+	oauth := oauth2.NewDiscordOauth(&appConfig.Discord)
 	return &authController{
 		Router:       router,
 		StaticFS:     staticFs,

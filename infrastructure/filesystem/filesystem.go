@@ -1,8 +1,15 @@
 package filesystem
 
-import "os"
+import (
+	"ffxvi-bard/port/contract"
+	"os"
+)
 
 type FileSystem struct{}
+
+func NewFileSystem() contract.FileSystemInterface {
+	return &FileSystem{}
+}
 
 func (lf FileSystem) EnsureDir(dirPath string) error {
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {

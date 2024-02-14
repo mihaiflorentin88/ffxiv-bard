@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"embed"
+	"ffxvi-bard/config"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
@@ -27,8 +28,8 @@ type migrationDriver struct {
 }
 
 // NewMigrationDriver creates a new instance of the migration driver
-func NewMigrationDriver(database, path string) contract.SqlMigrationDriverInterface {
-	return &migrationDriver{database: database, path: path}
+func NewMigrationDriver(config *config.DatabaseConfig) contract.SqlMigrationDriverInterface {
+	return &migrationDriver{database: config.Database, path: config.Path}
 }
 
 func (d *migrationDriver) connection() (*sql.DB, error) {
