@@ -1,0 +1,16 @@
+#This is a sample for the configuration file for the server. It is in the TOML format.
+
+[database]
+database = "sqlite3"
+path = "/path/to/database.db"
+
+[song]
+unfinished_files_path = "/path/to/unfinished"
+finished_files_path = "/path/to/finished"
+max_file_size = 1024
+
+[discord]
+client_id = ""
+client_secret = ""
+redirect_uri = ""
+scppes = ["identity", "email"]
