@@ -1,0 +1,23 @@
+.discord-btn {
+    background-color: #7289da; /* Discord brand color */
+    color: white;
+    border: none;
+}
+
+.discord-btn:hover {
+    background-color: #5b6eae;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20vh;
+}
+
+.login-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Adjust the gap between the icon and the text */
+}

@@ -1,0 +1,53 @@
+{{define "content"}}
+<div class="container">
+    <h2>Add song</h2>
+    <form action="/song" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">Title:</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+            <label for="artist">Artist:</label>
+            <input type="text" class="form-control" id="artist" name="artist" required>
+        </div>
+        <div class="form-group">
+            <label for="ensembleSize">Ensemble size:</label>
+            <select class="form-control" id="ensembleSize" name="ensembleSize" required>
+                <option value="Solo">Solo</option>
+                <option value="Duet">Duet</option>
+                <option value="Trio">Trio</option>
+            </select>
+        </div>
+        <div class="form-group">
+        <label for="genre multiple-select-clear-field">Select genres (multiselect):</label>
+        <select class="form-select" id="genre multiple-select-clear-field" data-placeholder="Choose anything" multiple required>
+            <option>Christmas Island</option>
+            <option>South Sudan</option>
+            <option>Jamaica</option>
+            <option>Kenya</option>
+            <option>French Guiana</option>
+            <option>Mayotta</option>
+            <option>Liechtenstein</option>
+            <option>Denmark</option>
+            <option>Eritrea</option>
+            <option>Gibraltar</option>
+            <option>Saint Helena, Ascension and Tristan da Cunha</option>
+            <option>Haiti</option>
+            <option>Namibia</option>
+            <option>South Georgia and the South Sandwich Islands</option>
+            <option>Vietnam</option>
+            <option>Yemen</option>
+            <option>Philippines</option>
+            <option>Benin</option>
+            <option>Czech Republic</option>
+            <option>Russia</option>
+        </select>
+        </div>
+        <div class="form-group">
+            <label for="formFile" class="form-label">Upload</label>
+            <input class="form-control" type="file" id="formFile" accept=".mid,.midi" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{{ end }}

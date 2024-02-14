@@ -1,0 +1,15 @@
+{{define "content"}}
+<h1>Something went wrong...</h1>
+<div class="error">
+    <p><b style="font-size: 14px">Error Message: </b>{{ .Message }}</p>
+</div>
+<div class="traceback">
+    <p><b>Traceback: </b></p>
+    <ul>
+        {{ range .Traceback }}
+        <li>{{ . }}</li>
+        {{ end }}
+    </ul>
+</div>
+    <a href="/" class="btn btn-primary"> Go to Home Page</a>
+{{ end }}

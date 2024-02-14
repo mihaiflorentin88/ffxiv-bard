@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css?family=Bree+Serif&display=swap');
+
+h1,h2,h3,h4,h5,h6{
+    font-family: 'Bree Serif', serif !important;
+}
+
+.hero-header {
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-position: center;
+    padding-top: 70px; /* Adjust this value to match your menu's height */
+}
+
+.hero-header .header {
+    width: 50%;
+    /*!*background: #495057;*/
+    background: rgba(73, 80, 87, 0.6);
+    padding: 1rem;
+    color: whitesmoke;
+    margin-top: 0;
+    z-index: 1;
+}
+.traceback p {
+    text-align: left;
+    padding-left: 0;
+}
+
+.error p {
+    text-align: left;
+    padding-left: 0;
+}
+
+
+.traceback ul {
+    text-align: left;
+    list-style-type: none; /* This removes the bullets */
+    padding-left: 10px;      /* This removes padding on the left if needed */
+}
+
+/* If you want to target specific list items */
+.traceback ul li {
+    text-align: left;
+    list-style-type: none; /* This removes the bullets */
+    padding-left: 10px;      /* This removes padding on the left if needed */
+}
+
+
+body {
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    /*background-image: url('/_resource/img/music.jpg'); !* Path to your background image *!*/
+    background-image: url('/_resource/img/bard1.jpg'); /* Path to your background image */
+    background-size: cover; /* Ensure it covers the entire viewport */
+    background-position: center center; /* Center the image */
+    background-attachment: fixed; /* Fix the background image position */
+    height: 100vh; /* Set the minimum height to full viewport height */
+    width: 100vw; /* Set the width to full viewport width */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}

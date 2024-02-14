@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/infrastructure/database/sql/migration/query/1_create_user_table.up.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/infrastructure/database/sql/migration/query/2_create_song_table.up.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/infrastructure/database/sql/migration/query/3_create_genre_table.up.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/infrastructure/database/sql/migration/query/4_create_rating_table.up.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/infrastructure/database/sql/migration/query/5_create_comment_table.up.sql" dialect="SQLite" />
+  </component>
+</project>
