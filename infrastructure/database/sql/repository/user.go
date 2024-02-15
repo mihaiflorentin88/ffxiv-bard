@@ -17,7 +17,7 @@ func NewUserRepository(driver contract.DatabaseDriverInterface) contract.UserRep
 	return &userRepository{driver: driver}
 }
 
-func (u *userRepository) FindUserById(id int) (*dto.DatabaseUser, error) {
+func (u *userRepository) FindById(id int) (*dto.DatabaseUser, error) {
 	query := `
 		SELECT 
     		id,
@@ -71,7 +71,7 @@ func (u *userRepository) FindUserById(id int) (*dto.DatabaseUser, error) {
 	return &user, nil
 }
 
-func (u *userRepository) FindUserByUsername(username string) (*dto.DatabaseUser, error) {
+func (u *userRepository) FindByUsername(username string) (*dto.DatabaseUser, error) {
 	query := "SELECT * FROM user WHERE username = ?"
 	row, err := u.driver.FetchOne(query, username)
 	if err != nil {
@@ -103,7 +103,7 @@ func (u *userRepository) FindUserByUsername(username string) (*dto.DatabaseUser,
 	return &user, nil
 }
 
-func (u *userRepository) FindUserByEmail(email string) (*dto.DatabaseUser, error) {
+func (u *userRepository) FindByEmail(email string) (*dto.DatabaseUser, error) {
 	query := "SELECT * FROM user WHERE email = ?"
 	row, err := u.driver.FetchOne(query, email)
 	if err != nil {
@@ -135,7 +135,7 @@ func (u *userRepository) FindUserByEmail(email string) (*dto.DatabaseUser, error
 	return &user, nil
 }
 
-func (u *userRepository) InsertUser(user dto.DatabaseUser) error {
+func (u *userRepository) Create(user dto.DatabaseUser) error {
 	query := `
 		INSERT INTO user (
 			username, email, name, auth_provider, provider_id, avatar,
@@ -151,7 +151,7 @@ func (u *userRepository) InsertUser(user dto.DatabaseUser) error {
 	return err
 }
 
-func (u *userRepository) UpdateUser(user dto.DatabaseUser) error {
+func (u *userRepository) Update(user dto.DatabaseUser) error {
 	query := `
 		UPDATE user SET
 			auth_provider=?, provider_id=?, avatar=?,
@@ -167,7 +167,7 @@ func (u *userRepository) UpdateUser(user dto.DatabaseUser) error {
 	return err
 }
 
-func (u *userRepository) FindUsersByProperties(user dto.DatabaseUser) ([]dto.DatabaseUser, error) {
+func (u *userRepository) FindByProperties(user dto.DatabaseUser) ([]dto.DatabaseUser, error) {
 	var users []dto.DatabaseUser
 	baseQuery := "SELECT * FROM user WHERE "
 	var conditions []string

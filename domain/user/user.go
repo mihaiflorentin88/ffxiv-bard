@@ -35,6 +35,42 @@ type User struct {
 	Date              date.Date
 }
 
+func (u *User) HydrateByID() error {
+	if u.StorageID == 0 {
+		return errors.New("user has no id assigned")
+	}
+	userDto, err := u.Repository.FindById(u.StorageID)
+	if err != nil {
+		return errors.New(fmt.Sprintf("could not load userid %v. Reason: %s ", u.StorageID, err))
+	}
+	FromDatabaseUserDTO(userDto, u)
+	return nil
+}
+
+func (u *User) HydrateByUsername() error {
+	if u.Username == "" {
+		return errors.New("user has no username assigned")
+	}
+	userDto, err := u.Repository.FindByUsername(u.Username)
+	if err != nil {
+		return errors.New(fmt.Sprintf("could not load userid. Reason: %s ", err))
+	}
+	FromDatabaseUserDTO(userDto, u)
+	return nil
+}
+
+func (u *User) HydrateByEmail() error {
+	if u.Username == "" {
+		return errors.New("user has no email address assigned")
+	}
+	userDto, err := u.Repository.FindByEmail(u.Email)
+	if err != nil {
+		return errors.New(fmt.Sprintf("could not load userid. Reason: %s ", err))
+	}
+	FromDatabaseUserDTO(userDto, u)
+	return nil
+}
+
 func (u *User) HasTokenExpired() bool {
 	if u.OauthToken != nil {
 		return u.OauthToken.Valid()
@@ -67,10 +103,10 @@ func (u *User) RenewToken() error {
 
 func (u *User) Persist() error {
 	if u.StorageID != 0 {
-		userDto, err := u.Repository.FindUserById(u.StorageID)
+		userDto, err := u.Repository.FindById(u.StorageID)
 		if err == nil || userDto != nil {
 			u.StorageID = userDto.ID
-			err := u.Repository.UpdateUser(u.ToDatabaseUserDTO())
+			err := u.Repository.Update(u.ToDatabaseUserDTO())
 			if err != nil {
 				return errors.New(fmt.Sprintf("cannot update user. Reason: %s", err))
 			}
@@ -78,10 +114,10 @@ func (u *User) Persist() error {
 		}
 	}
 	if u.Username != "" {
-		userDto, err := u.Repository.FindUserByUsername(u.Username)
+		userDto, err := u.Repository.FindByUsername(u.Username)
 		if err == nil || userDto != nil {
 			u.StorageID = userDto.ID
-			err := u.Repository.UpdateUser(u.ToDatabaseUserDTO())
+			err := u.Repository.Update(u.ToDatabaseUserDTO())
 			if err != nil {
 				return errors.New(fmt.Sprintf("cannot update user. Reason: %s", err))
 			}
@@ -90,17 +126,17 @@ func (u *User) Persist() error {
 	}
 
 	if u.Email != "" {
-		userDto, err := u.Repository.FindUserByEmail(u.Email)
+		userDto, err := u.Repository.FindByEmail(u.Email)
 		if err == nil || userDto != nil {
 			u.StorageID = userDto.ID
-			err := u.Repository.UpdateUser(u.ToDatabaseUserDTO())
+			err := u.Repository.Update(u.ToDatabaseUserDTO())
 			if err != nil {
 				return errors.New(fmt.Sprintf("cannot update user. Reason: %s", err))
 			}
 			return nil
 		}
 	}
-	err := u.Repository.InsertUser(u.ToDatabaseUserDTO())
+	err := u.Repository.Create(u.ToDatabaseUserDTO())
 
 	if err != nil {
 		return errors.New(fmt.Sprintf("cannot create new user. Reason: %s", err))
@@ -154,21 +190,20 @@ func FromDiscordUserDTO(discordUser dto.DiscordUser, oauth contract.Oauth, repos
 	}
 }
 
-func FromDatabaseUserDTO(userDTO dto.DatabaseUser) User {
-	return User{
-		StorageID:         userDTO.ID,
-		Username:          userDTO.Username,
-		Email:             userDTO.Email,
-		Name:              helper.GetStringValue(userDTO.Name),
-		AuthProvider:      helper.GetStringValue(userDTO.AuthProvider),
-		ProviderID:        helper.GetStringValue(userDTO.ProviderID),
-		Avatar:            helper.GetStringValue(userDTO.Avatar),
-		Discriminator:     helper.GetStringValue(userDTO.Discriminator),
-		AuthorizationCode: helper.GetStringValue(userDTO.AuthorizationCode),
-		AccessToken:       helper.GetStringValue(userDTO.AccessToken),
-		RefreshToken:      helper.GetStringValue(userDTO.RefreshToken),
-		TokenType:         helper.GetStringValue(userDTO.TokenType),
-		ExpiresAt:         helper.GetTimeValue(userDTO.ExpiresAt),
-		TokenReleasedAt:   helper.GetTimeValue(userDTO.TokenReleasedAt),
-	}
+func FromDatabaseUserDTO(userDTO *dto.DatabaseUser, user *User) *User {
+	user.StorageID = userDTO.ID
+	user.Username = userDTO.Username
+	user.Email = userDTO.Email
+	user.Name = helper.GetStringValue(userDTO.Name)
+	user.AuthProvider = helper.GetStringValue(userDTO.AuthProvider)
+	user.ProviderID = helper.GetStringValue(userDTO.ProviderID)
+	user.Avatar = helper.GetStringValue(userDTO.Avatar)
+	user.Discriminator = helper.GetStringValue(userDTO.Discriminator)
+	user.AuthorizationCode = helper.GetStringValue(userDTO.AuthorizationCode)
+	user.AccessToken = helper.GetStringValue(userDTO.AccessToken)
+	user.RefreshToken = helper.GetStringValue(userDTO.RefreshToken)
+	user.TokenType = helper.GetStringValue(userDTO.TokenType)
+	user.ExpiresAt = helper.GetTimeValue(userDTO.ExpiresAt)
+	user.TokenReleasedAt = helper.GetTimeValue(userDTO.TokenReleasedAt)
+	return user
 }
