@@ -1,8 +1,7 @@
 package http
 
 import (
-	"embed"
-	httpapps "ffxvi-bard/cmd/http/apps"
+	"ffxvi-bard/container"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,14 +9,17 @@ import (
 	"time"
 )
 
-//go:embed resource/*
-var staticFS embed.FS
+func EnabledRoutes(router *gin.Engine) {
+	container.GetHttpRenderer().EnableStatic(router)
+	container.GetSongRouter().EnableRoutes(router)
+	container.GetMainRouter().EnableRoutes(router)
+	container.GetAuthRouter().EnableRoutes(router)
+}
 
 func Server(port int, poolSize int) {
 	runtime.GOMAXPROCS(poolSize)
-	router := gin.Default()
-	app := httpapps.NewRoot(router, &staticFS)
-	app.Initialize()
+	router := container.GetGinRouter()
+	EnabledRoutes(router)
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%v", port),
 		Handler:        router,

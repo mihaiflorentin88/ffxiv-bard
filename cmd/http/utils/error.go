@@ -1,4 +1,4 @@
-package httpapps
+package utils
 
 import (
 	"embed"
@@ -10,37 +10,38 @@ import (
 	"strings"
 )
 
-type HttpError struct {
+type ErrorHandler struct {
 	Message   string
 	Traceback []string
+	StaticFS  *embed.FS
 }
 
-func NewHttpError() contract.HttpError {
-	return &HttpError{}
+func NewHttpErrorHandler() contract.HttpErrorHandlerInterface {
+	return &ErrorHandler{StaticFS: &staticFS}
 }
 
-func (h *HttpError) GetMessage() string {
+func (h *ErrorHandler) GetMessage() string {
 	return h.Message
 }
 
-func (h *HttpError) SetMessage(message string) {
+func (h *ErrorHandler) SetMessage(message string) {
 	h.Message = message
 }
 
-func (h *HttpError) GetTraceback() []string {
+func (h *ErrorHandler) GetTraceback() []string {
 	return h.Traceback
 }
 
-func (h *HttpError) SetTraceback(traceback []string) {
+func (h *ErrorHandler) SetTraceback(traceback []string) {
 	h.Traceback = traceback
 }
 
-func (h *HttpError) RenderTemplate(err error, c *gin.Context, staticFS *embed.FS) {
+func (h *ErrorHandler) RenderTemplate(err error, c *gin.Context) {
 	traceback := strings.Split(string(debug.Stack()), "\n")
 	h.SetMessage(err.Error())
 	h.SetTraceback(traceback)
 	tmpl, err := template.New("base").ParseFS(
-		staticFS,
+		h.StaticFS,
 		"resource/template/base/base.html",
 		"resource/template/base/navbar.html",
 		"resource/template/error/error.html",
