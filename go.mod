@@ -10,8 +10,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/ravener/discord-oauth2 v0.0.0-20230514095040-ae65713199b3
-	github.com/realTristan/disgoauth v1.0.2
 	github.com/spf13/cobra v1.8.0
+	golang.org/x/oauth2 v0.14.0
 )
 
 require (
@@ -46,7 +46,6 @@ require (
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/oauth2 v0.14.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
