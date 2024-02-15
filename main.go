@@ -3,9 +3,6 @@ package main
 import (
 	"ffxvi-bard/cmd/cli"
 	"ffxvi-bard/container"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 //func main() {
@@ -39,7 +36,7 @@ func main() {
 	}
 	defer connection.Close()
 
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
-	<-signals
+	//signals := make(chan os.Signal, 1)
+	//signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	//<-signals
 }

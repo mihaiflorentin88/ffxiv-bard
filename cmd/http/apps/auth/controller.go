@@ -4,6 +4,8 @@ import (
 	"embed"
 	"errors"
 	"ffxvi-bard/config"
+	"ffxvi-bard/container"
+	"ffxvi-bard/domain/user"
 	oauth2 "ffxvi-bard/infrastructure/oauth"
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
@@ -91,9 +93,15 @@ func (a *authController) loginDiscordCallback() {
 		if err != nil {
 			a.ErrorHandler.RenderTemplate(err, c, a.StaticFS)
 		}
-		//loggedUser := user.FromDiscordUserDTO(userDTO, a.Oauth)
-		userDTO.Name = "Test"
+		// TODO REMOVE Do not import the service container here
+		repo, err := container.GetUserRepository()
+		loggedUser := user.FromDiscordUserDTO(userDTO, a.Oauth, repo)
+		err = loggedUser.Persist()
+		if err != nil {
+			a.ErrorHandler.RenderTemplate(err, c, a.StaticFS)
+		}
 		defer response.Body.Close()
+		c.Redirect(http.StatusPermanentRedirect, "/")
 	})
 }
 

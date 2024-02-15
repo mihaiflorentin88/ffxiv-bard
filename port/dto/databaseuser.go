@@ -2,12 +2,11 @@ package dto
 
 import "time"
 
-// DatabaseUser represents a user record from the database.
 type DatabaseUser struct {
 	ID                int        `db:"id"`
 	Username          string     `db:"username"`
 	Email             string     `db:"email"`
-	Name              *string    `db:"name"` // Use pointer for nullable fields
+	Name              *string    `db:"name"`
 	AuthProvider      *string    `db:"auth_provider"`
 	ProviderID        *string    `db:"provider_id"`
 	Avatar            *string    `db:"avatar"`
@@ -16,7 +15,7 @@ type DatabaseUser struct {
 	AccessToken       *string    `db:"access_token"`
 	RefreshToken      *string    `db:"refresh_token"`
 	TokenType         *string    `db:"token_type"`
-	ExpiresAt         *time.Time `db:"expires_at"` // Use pointer for nullable fields
+	ExpiresAt         *time.Time `db:"expires_at"`
 	TokenReleasedAt   *time.Time `db:"token_released_at"`
 	CreatedAt         time.Time  `db:"created_at"`
 	UpdatedAt         time.Time  `db:"updated_at"`
