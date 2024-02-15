@@ -1,4 +1,4 @@
-package songprocessor
+package processor
 
 import (
 	"errors"
