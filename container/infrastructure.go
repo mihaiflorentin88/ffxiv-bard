@@ -35,3 +35,11 @@ func GetUserRepository() (contract.UserRepositoryInterface, error) {
 	}
 	return repository.NewUserRepository(driver), nil
 }
+
+func GetGenreRepository() (contract.GenreRepositoryInterface, error) {
+	driver, err := GetDatabaseDriver()
+	if err != nil {
+		return nil, err
+	}
+	return repository.NewGenreRepository(driver), nil
+}

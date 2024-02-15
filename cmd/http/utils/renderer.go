@@ -24,18 +24,23 @@ type renderer struct {
 	ErrorHandler contract.HttpErrorHandlerInterface
 }
 
+type RenderedData struct {
+	User interface{} // can be either user.User{} or nil
+	Data interface{} // can be anything
+}
+
 func NewRenderer(errorHandler contract.HttpErrorHandlerInterface) contract.HttpRenderer {
 	r := &renderer{
 		StaticFS:     GetStaticFS(),
 		ErrorHandler: errorHandler,
 	}
 	defaultTemplates := []string{
-		"resource/template/base/base.html",
-		"resource/template/base/navbar.html",
-		"resource/template/base/base_js.html",
-		"resource/template/base/base_styles.html",
-		"resource/template/base/additional_js.html",
-		"resource/template/base/additional_styles.html",
+		"resource/template/base/base.gohtml",
+		"resource/template/base/navbar.gohtml",
+		"resource/template/base/base_js.gohtml",
+		"resource/template/base/base_styles.gohtml",
+		"resource/template/base/additional_js.gohtml",
+		"resource/template/base/additional_styles.gohtml",
 	}
 	r.Templates = defaultTemplates
 	return r
@@ -56,19 +61,29 @@ func (r *renderer) RemoveTemplate(file string) contract.HttpRenderer {
 	return r
 }
 
-func (r *renderer) Render(c *gin.Context, data interface{}) {
+func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 	tmpl := template.New("base")
 	var err error
 	for _, file := range r.Templates {
 		tmpl, err = tmpl.ParseFS(r.StaticFS, file)
 		if err != nil {
 			log.Println("Error parsing templates from FS. Reason: ", err)
-			r.ErrorHandler.RenderTemplate(err, c)
+			r.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		}
 	}
-	err = tmpl.ExecuteTemplate(c.Writer, "base", data)
+
+	renderedData := RenderedData{
+		Data: data,
+	}
+
+	loggedUser, exists := c.Get("user")
+	if exists && loggedUser != nil {
+		renderedData.User = loggedUser
+	}
+	c.Status(StatusCode)
+	err = tmpl.ExecuteTemplate(c.Writer, "base", renderedData)
 	if err != nil {
-		r.ErrorHandler.RenderTemplate(err, c)
+		r.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		log.Println("Could not render template. Reason: ", err)
 	}
 }

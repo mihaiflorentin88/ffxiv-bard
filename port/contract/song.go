@@ -25,6 +25,7 @@ const ( // If you change anything here. You will also need to change the Ensembl
 
 type SongInterface interface {
 	EnsembleString() string
+	GetDetailedEnsembleString() map[int]string
 	StatusString() string
 	GenerateFileCode()
 	AddComment(c CommentInterface)

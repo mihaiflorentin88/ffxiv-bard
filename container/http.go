@@ -5,6 +5,7 @@ import (
 	maincontroller "ffxvi-bard/cmd/http/apps/main"
 	"ffxvi-bard/cmd/http/apps/song"
 	"ffxvi-bard/cmd/http/utils"
+	"ffxvi-bard/cmd/http/utils/middleware"
 	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -22,8 +23,16 @@ func GetGinRouter() *gin.Engine {
 	return gin.Default()
 }
 
+func GetAuthMiddleware() middleware.AuthMiddleware {
+	return middleware.NewJwtMiddleware(GetDiscordAuth(), GetNewEmptyUser())
+}
+
 func GetSongController() *song.Controller {
-	return song.NewSongController(GetErrorHandler(), GetHttpRenderer())
+	genreRepo, err := GetGenreRepository()
+	if err != nil {
+		panic("Cannot access GenreRepository.")
+	}
+	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), genreRepo)
 }
 
 func GetMainController() *maincontroller.Controller {
@@ -31,7 +40,7 @@ func GetMainController() *maincontroller.Controller {
 }
 
 func GetSongRouter() contract.RouterInterface {
-	return song.NewSongRouter(GetSongController())
+	return song.NewSongRouter(GetSongController(), GetAuthMiddleware())
 }
 
 func getAuthController() *auth.Controller {

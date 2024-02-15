@@ -32,6 +32,11 @@ const ( // Make sure the order of these constants match the order of the Ensembl
 	Octet   = contract.Octet
 )
 
+func EnsembleString(i int) string {
+	ensembleStrings := [...]string{"Solo", "Duet", "Trio", "Quartet", "Quintet", "Sextet", "Septet", "Octet"}
+	return ensembleStrings[i]
+}
+
 type song struct {
 	storageID     int
 	title         string
@@ -48,6 +53,13 @@ type song struct {
 	songProcessor contract.SongProcessorInterface
 	filesystem    contract.FileSystemInterface
 	Date          date.Date
+}
+
+func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) contract.SongInterface {
+	return &song{
+		songProcessor: songProcessor,
+		filesystem:    filesystem,
+	}
 }
 
 func NewSong(title string, artist string, ensembleSize EnsembleSize, genre []Genre, comments []contract.CommentInterface, file []byte, uploader user.User, songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) (contract.SongInterface, error) {
@@ -76,6 +88,14 @@ func NewSong(title string, artist string, ensembleSize EnsembleSize, genre []Gen
 func (s *song) EnsembleString() string {
 	ensembleStrings := [...]string{"Solo", "Duet", "Trio", "Quartet", "Quintet", "Sextet", "Septet", "Octet"}
 	return ensembleStrings[s.ensembleSize]
+}
+
+func (a *song) GetDetailedEnsembleString() map[int]string {
+	var result = make(map[int]string)
+	for i := range 8 { // don't mind the ide. this is syntax added in golang 1.22. the ide just didn had time to catch up with it.
+		result[i] = EnsembleString(i)
+	}
+	return result
 }
 
 func (s *song) StatusString() string {

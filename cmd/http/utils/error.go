@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"html/template"
 	"log"
+	"net/http"
 	"runtime/debug"
 	"strings"
 )
@@ -36,23 +37,25 @@ func (h *ErrorHandler) SetTraceback(traceback []string) {
 	h.Traceback = traceback
 }
 
-func (h *ErrorHandler) RenderTemplate(err error, c *gin.Context) {
+func (h *ErrorHandler) RenderTemplate(err error, statusCode int, c *gin.Context) {
 	traceback := strings.Split(string(debug.Stack()), "\n")
 	h.SetMessage(err.Error())
 	h.SetTraceback(traceback)
 	tmpl, err := template.New("base").ParseFS(
 		h.StaticFS,
-		"resource/template/base/base.html",
-		"resource/template/base/navbar.html",
-		"resource/template/error/error.html",
-		"resource/template/base/base_js.html",
-		"resource/template/base/base_styles.html",
-		"resource/template/base/additional_js.html",
-		"resource/template/base/additional_styles.html",
+		"resource/template/base/base.gohtml",
+		"resource/template/base/navbar.gohtml",
+		"resource/template/error/error.gohtml",
+		"resource/template/base/base_js.gohtml",
+		"resource/template/base/base_styles.gohtml",
+		"resource/template/base/additional_js.gohtml",
+		"resource/template/base/additional_styles.gohtml",
 	)
 	if err != nil {
+		statusCode = http.StatusInternalServerError
 		println("error parsing templates from FS: %s", err)
 	}
+	c.Status(statusCode)
 	err = tmpl.ExecuteTemplate(c.Writer, "base", h)
 	if err != nil {
 		log.Println("Error executing template:", err)

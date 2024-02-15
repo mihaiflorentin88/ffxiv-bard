@@ -7,8 +7,8 @@ import (
 
 // httpCMD fetches information about migrations
 var httpCmd = &cobra.Command{
-	Use:   "http",
-	Short: "h",
+	Use:   "server",
+	Short: "s",
 	Run: func(cmd *cobra.Command, args []string) {
 		start, _ := cmd.Flags().GetBool("start")
 		port, _ := cmd.Flags().GetInt("port")

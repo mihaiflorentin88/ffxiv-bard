@@ -27,12 +27,17 @@ type User struct {
 	AccessToken       string
 	RefreshToken      string
 	TokenType         string
+	IsAdmin           bool
 	OauthToken        *oauth2.Token
 	ExpiresAt         time.Time
 	TokenReleasedAt   time.Time
 	Oauth             contract.Oauth
 	Repository        contract.UserRepositoryInterface
 	Date              date.Date
+}
+
+func NewEmptyUser(repository contract.UserRepositoryInterface) *User {
+	return &User{Repository: repository}
 }
 
 func (u *User) HydrateByID() error {
@@ -43,7 +48,7 @@ func (u *User) HydrateByID() error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("could not load userid %v. Reason: %s ", u.StorageID, err))
 	}
-	FromDatabaseUserDTO(userDto, u)
+	FromDatabaseUserDTO(userDto, u, u.Repository)
 	return nil
 }
 
@@ -55,7 +60,7 @@ func (u *User) HydrateByUsername() error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("could not load userid. Reason: %s ", err))
 	}
-	FromDatabaseUserDTO(userDto, u)
+	FromDatabaseUserDTO(userDto, u, u.Repository)
 	return nil
 }
 
@@ -67,7 +72,7 @@ func (u *User) HydrateByEmail() error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("could not load userid. Reason: %s ", err))
 	}
-	FromDatabaseUserDTO(userDto, u)
+	FromDatabaseUserDTO(userDto, u, u.Repository)
 	return nil
 }
 
@@ -190,7 +195,7 @@ func FromDiscordUserDTO(discordUser dto.DiscordUser, oauth contract.Oauth, repos
 	}
 }
 
-func FromDatabaseUserDTO(userDTO *dto.DatabaseUser, user *User) *User {
+func FromDatabaseUserDTO(userDTO *dto.DatabaseUser, user *User, userRepository contract.UserRepositoryInterface) *User {
 	user.StorageID = userDTO.ID
 	user.Username = userDTO.Username
 	user.Email = userDTO.Email
@@ -205,5 +210,7 @@ func FromDatabaseUserDTO(userDTO *dto.DatabaseUser, user *User) *User {
 	user.TokenType = helper.GetStringValue(userDTO.TokenType)
 	user.ExpiresAt = helper.GetTimeValue(userDTO.ExpiresAt)
 	user.TokenReleasedAt = helper.GetTimeValue(userDTO.TokenReleasedAt)
+	user.IsAdmin = userDTO.IsAdmin
+	user.Repository = userRepository
 	return user
 }

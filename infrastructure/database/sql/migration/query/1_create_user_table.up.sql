@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS user (
         token_type TEXT,
         expires_at TIMESTAMP,
         token_released_at TIMESTAMP,
+        is_admin BOOLEAN DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

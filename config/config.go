@@ -35,6 +35,7 @@ type DiscordConfig struct {
 	ClientSecret string   `toml:"client_secret"`
 	RedirectURI  string   `toml:"redirect_uri"`
 	Scopes       []string `toml:"scopes"`
+	JwtSecret    string   `toml:"jwt_secret"`
 }
 
 func (s *SongConfig) ensureFolders() {

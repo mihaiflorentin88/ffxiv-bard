@@ -4,6 +4,7 @@ import (
 	"errors"
 	"ffxvi-bard/domain/date"
 	"ffxvi-bard/domain/user"
+	"ffxvi-bard/port/contract"
 )
 
 type Rating struct {

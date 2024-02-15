@@ -10,8 +10,9 @@
 
 .login-container {
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* Stack flex items vertically */
     align-items: center;
+    justify-content: center;
     height: 20vh;
 }
 
@@ -19,5 +20,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px; /* Adjust the gap between the icon and the text */
+    gap: 5px; /* Adjust the gap between the icon and the text */
+}
+
+h4, p {
+    text-align: center;
 }

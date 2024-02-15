@@ -34,6 +34,7 @@ func (u *userRepository) FindById(id int) (*dto.DatabaseUser, error) {
 		    token_type,
 		    expires_at,
 		    token_released_at,
+		    is_admin,
 		    created_at,
 		    updated_at
 		  FROM user WHERE id = ?`
@@ -59,6 +60,7 @@ func (u *userRepository) FindById(id int) (*dto.DatabaseUser, error) {
 		&user.TokenType,
 		&user.ExpiresAt,
 		&user.TokenReleasedAt,
+		&user.IsAdmin,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -94,6 +96,7 @@ func (u *userRepository) FindByUsername(username string) (*dto.DatabaseUser, err
 		&user.TokenType,
 		&user.ExpiresAt,
 		&user.TokenReleasedAt,
+		&user.IsAdmin,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)

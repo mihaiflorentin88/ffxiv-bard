@@ -3,6 +3,7 @@ package maincontroller
 import (
 	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type Controller struct {
@@ -18,6 +19,6 @@ func NewMainController(errorHandler contract.HttpErrorHandlerInterface, renderer
 }
 
 func (m *Controller) RenderIndex(c *gin.Context) {
-	m.Renderer.AddTemplate("resource/template/main/content.html")
-	m.Renderer.Render(c, nil)
+	m.Renderer.AddTemplate("resource/template/main/content.gohtml")
+	m.Renderer.Render(c, nil, http.StatusOK)
 }

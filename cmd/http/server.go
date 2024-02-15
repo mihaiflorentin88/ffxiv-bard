@@ -19,6 +19,8 @@ func EnabledRoutes(router *gin.Engine) {
 func Server(port int, poolSize int) {
 	runtime.GOMAXPROCS(poolSize)
 	router := container.GetGinRouter()
+	authMiddleware := container.GetAuthMiddleware()
+	router.Use(authMiddleware.GetLoggedUser())
 	EnabledRoutes(router)
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%v", port),

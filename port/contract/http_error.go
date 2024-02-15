@@ -9,5 +9,5 @@ type HttpErrorHandlerInterface interface {
 	SetMessage(message string)
 	GetTraceback() []string
 	SetTraceback(traceback []string)
-	RenderTemplate(err error, c *gin.Context)
+	RenderTemplate(err error, statusCode int, c *gin.Context)
 }
