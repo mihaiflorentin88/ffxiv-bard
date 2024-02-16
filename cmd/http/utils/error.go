@@ -12,6 +12,7 @@ import (
 )
 
 type ErrorHandler struct {
+	User      interface{}
 	Message   string
 	Traceback []string
 	StaticFS  *embed.FS
@@ -39,6 +40,10 @@ func (h *ErrorHandler) SetTraceback(traceback []string) {
 
 func (h *ErrorHandler) RenderTemplate(err error, statusCode int, c *gin.Context) {
 	traceback := strings.Split(string(debug.Stack()), "\n")
+	loggedUser, exists := c.Get("user")
+	if exists && loggedUser != nil {
+		h.User = loggedUser
+	}
 	h.SetMessage(err.Error())
 	h.SetTraceback(traceback)
 	tmpl, err := template.New("base").ParseFS(

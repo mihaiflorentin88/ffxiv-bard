@@ -2,7 +2,9 @@ package song
 
 import (
 	"ffxvi-bard/cmd/http/apps/song/form"
+	"ffxvi-bard/domain/song"
 	"ffxvi-bard/port/contract"
+	"ffxvi-bard/port/dto"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -12,15 +14,20 @@ type Controller struct {
 	GenreRepository contract.GenreRepositoryInterface
 	ErrorHandler    contract.HttpErrorHandlerInterface
 	Renderer        contract.HttpRenderer
+	SongRepository  contract.SongRepositoryInterface
+	SongProcessor   contract.SongProcessorInterface
 }
 
 func NewSongController(song contract.SongInterface, errorHandler contract.HttpErrorHandlerInterface,
-	renderer contract.HttpRenderer, genreRepository contract.GenreRepositoryInterface) *Controller {
+	renderer contract.HttpRenderer, genreRepository contract.GenreRepositoryInterface,
+	songRepository contract.SongRepositoryInterface, songProcessor contract.SongProcessorInterface) *Controller {
 	return &Controller{
 		Song:            song,
 		GenreRepository: genreRepository,
 		ErrorHandler:    errorHandler,
 		Renderer:        renderer,
+		SongRepository:  songRepository,
+		SongProcessor:   songProcessor,
 	}
 }
 
@@ -37,8 +44,6 @@ func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
 	}
 	s.Renderer.
 		AddTemplate("resource/template/song/add_song.gohtml").
-		AddTemplate("resource/template/song/add_songl_js.gohtml").
-		RemoveTemplate("resource/template/base/additional_js.gohtml").
 		Render(c, formViewData, http.StatusOK)
 }
 
@@ -47,16 +52,23 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 	artist := c.PostForm("artist")
 	ensembleSize := c.PostForm("ensembleSize")
 	genre := c.PostFormArray("genre")
-	file, err := c.FormFile("file")
+	fileHeader, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	_ = title
-	_ = artist
-	_ = ensembleSize
-	_ = genre
-	_ = file
+	submittedForm := form.NewSongFormSubmitted(title, artist, ensembleSize, genre, fileHeader, s.ErrorHandler, c)
+	songDTO := dto.AddNewSong(submittedForm.Title, submittedForm.Artist, submittedForm.EnsembleSize,
+		submittedForm.Genre, submittedForm.File, &submittedForm.User)
+	newSong, err := song.FromNewSongDTO(songDTO, s.SongRepository, s.GenreRepository, s.SongProcessor)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	songDatabaseDto := newSong.ToDatabaseSongDTO()
+	err = s.SongRepository.InsertNewSong(songDatabaseDto, songDTO.Genre)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
 }

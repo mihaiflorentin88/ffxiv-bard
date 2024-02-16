@@ -7,10 +7,12 @@ CREATE TABLE IF NOT EXISTS song (
         uploader_id     INTEGER NOT NULL,
         status          INTEGER NOT NULL,
         status_message  TEXT,
+        checksum        TEXT NOT NULL UNIQUE,
+        lock_expire_ts  TIMESTAMP,
         created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY     (uploader_id) REFERENCES user(id)
-);
+        FOREIGN KEY(uploader_id) REFERENCES user(id)
+    );
 
 CREATE INDEX IF NOT EXISTS idx_song_title ON song(title);
 CREATE INDEX IF NOT EXISTS idx_song_artist ON song(artist);

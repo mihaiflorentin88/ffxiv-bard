@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS rating (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
       song_id    INTEGER NOT NULL,
       author_id  INTEGER NOT NULL,
-      rating     INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (song_id) REFERENCES song(id),
-      FOREIGN KEY (author_id) REFERENCES user(id)
-);
+      rating     INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 10),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(song_id) REFERENCES song(id) ON DELETE CASCADE,
+    FOREIGN KEY(author_id) REFERENCES user(id) ON DELETE CASCADE
+    );
 
 CREATE INDEX IF NOT EXISTS idx_rating_song_id ON rating(song_id);
 

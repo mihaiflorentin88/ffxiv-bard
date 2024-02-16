@@ -43,3 +43,11 @@ func GetGenreRepository() (contract.GenreRepositoryInterface, error) {
 	}
 	return repository.NewGenreRepository(driver), nil
 }
+
+func GetSongRepository() (contract.SongRepositoryInterface, error) {
+	driver, err := GetDatabaseDriver()
+	if err != nil {
+		return nil, err
+	}
+	return repository.NewSongRepository(driver), nil
+}

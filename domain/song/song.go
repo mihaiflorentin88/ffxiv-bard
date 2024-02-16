@@ -1,13 +1,17 @@
 package song
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"ffxvi-bard/domain/date"
 	"ffxvi-bard/domain/user"
 	"ffxvi-bard/port/contract"
+	"ffxvi-bard/port/dto"
 	"fmt"
 	"github.com/google/uuid"
 	"math"
+	"time"
 )
 
 type Status = contract.Status
@@ -32,27 +36,48 @@ const ( // Make sure the order of these constants match the order of the Ensembl
 	Octet   = contract.Octet
 )
 
+var EnsembleSizes []EnsembleSize = []EnsembleSize{
+	contract.Solo,    // 0
+	contract.Duet,    // 1
+	contract.Trio,    // 2
+	contract.Quartet, // 3
+	contract.Quintet, // 4
+	contract.Sextet,  // 5
+	contract.Septet,  // 6
+	contract.Octet,   // 7
+}
+
+func GetEnsembleSize(size int) (contract.EnsembleSize, error) {
+	if size >= 0 && size < len(EnsembleSizes) {
+		return EnsembleSizes[size], nil
+	}
+	return 0, errors.New("%v is not a valid EnsembleSize")
+}
+
 func EnsembleString(i int) string {
 	ensembleStrings := [...]string{"Solo", "Duet", "Trio", "Quartet", "Quintet", "Sextet", "Septet", "Octet"}
 	return ensembleStrings[i]
 }
 
 type song struct {
-	storageID     int
-	title         string
-	artist        string
-	ensembleSize  EnsembleSize
-	fileCode      string
-	file          []byte
-	rating        []Rating
-	genre         []Genre
-	uploader      user.User
-	comments      []contract.CommentInterface
-	status        Status
-	statusMessage string
-	songProcessor contract.SongProcessorInterface
-	filesystem    contract.FileSystemInterface
-	Date          date.Date
+	storageID      int
+	title          string
+	artist         string
+	ensembleSize   EnsembleSize
+	fileCode       string
+	file           []byte
+	checksum       string
+	rating         []Rating
+	genre          []Genre
+	uploader       *user.User
+	comments       []contract.CommentInterface
+	status         Status
+	statusMessage  string
+	lockTs         time.Time
+	songProcessor  contract.SongProcessorInterface
+	filesystem     contract.FileSystemInterface
+	Date           date.Date
+	songRepository contract.SongRepositoryInterface
 }
 
 func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) contract.SongInterface {
@@ -76,7 +101,7 @@ func NewSong(title string, artist string, ensembleSize EnsembleSize, genre []Gen
 	song.SetGenre(genre)
 	song.SetComments(comments)
 	song.SetFile(file)
-	song.SetUploader(uploader)
+	song.SetUploader(&uploader)
 	song.SetStatus(Pending)
 	song.SetSongProcessor(songProcessor)
 	song.SetFileSystem(filesystem)
@@ -85,9 +110,71 @@ func NewSong(title string, artist string, ensembleSize EnsembleSize, genre []Gen
 	return song, err
 }
 
+func FromNewSongDTO(newSongDto dto.NewSong, songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface) (contract.SongInterface, error) {
+	song := song{
+		title:         newSongDto.Title,
+		artist:        newSongDto.Artist,
+		status:        Pending,
+		statusMessage: "Pending song processing.",
+	}
+	song.songRepository = songRepository
+	song.file = newSongDto.File
+	song.ComputeChecksum()
+	duplicatedEntry, err := songRepository.FindByChecksum(song.checksum)
+	if duplicatedEntry.ID != 0 {
+		return &song, errors.New(fmt.Sprintf("song already exists under id `%v`", duplicatedEntry.ID))
+	}
+	ensSize, err := GetEnsembleSize(newSongDto.EnsembleSize)
+	if err != nil {
+		return &song, err
+	}
+	song.ensembleSize = ensSize
+	genresDTO, err := genreRepository.FetchByIDs(newSongDto.Genre)
+	if err != nil {
+		return &song, errors.New(fmt.Sprintf("one of the genres might not be valid. Error %s", err))
+	}
+	if userObj, ok := newSongDto.User.(*user.User); ok {
+		song.uploader = userObj
+	} else {
+		return &song, errors.New("song uploader is not of the correct type")
+	}
+	song.genre = FromGenresDatabaseDTO(genresDTO)
+	song.songProcessor = songProcessor
+	song.GenerateFileCode()
+	err = song.songProcessor.WriteUnprocessedSong(&song)
+	return &song, nil
+}
+
+func (s *song) ToDatabaseSongDTO() dto.DatabaseSongDTO {
+	return dto.DatabaseSongDTO{
+		ID:            s.storageID,
+		Title:         s.title,
+		Artist:        s.artist,
+		EnsembleSize:  int(s.ensembleSize),
+		FileCode:      s.fileCode,
+		UploaderID:    s.uploader.StorageID,
+		Status:        int(s.status),
+		StatusMessage: &s.statusMessage,
+		Checksum:      s.checksum,
+		LockExpireTS:  &s.lockTs,
+		CreatedAt:     time.Time{},
+		UpdatedAt:     time.Time{},
+	}
+}
+
 func (s *song) EnsembleString() string {
 	ensembleStrings := [...]string{"Solo", "Duet", "Trio", "Quartet", "Quintet", "Sextet", "Septet", "Octet"}
 	return ensembleStrings[s.ensembleSize]
+}
+
+func (s *song) ComputeChecksum() {
+	if s.file == nil {
+		errors.New("no files to compute checksum")
+	}
+	hash := sha256.New()
+	hash.Write(s.file)
+	hashBytes := hash.Sum(nil)
+	s.checksum = base64.StdEncoding.EncodeToString(hashBytes)
 }
 
 func (a *song) GetDetailedEnsembleString() map[int]string {
@@ -184,7 +271,7 @@ func (s *song) GetGenre() []Genre {
 	return s.genre
 }
 
-func (s *song) GetUploader() user.User {
+func (s *song) GetUploader() *user.User {
 	return s.uploader
 }
 
@@ -228,7 +315,7 @@ func (s *song) SetFile(file []byte) {
 	s.file = file
 }
 
-func (s *song) SetUploader(uploader user.User) {
+func (s *song) SetUploader(uploader *user.User) {
 	s.uploader = uploader
 }
 
@@ -250,4 +337,8 @@ func (s *song) RemoveUnprocessedSong() error {
 
 func (s *song) AddRating(rating Rating) {
 	s.rating = append(s.rating, rating)
+}
+
+func FromSubmittedForm() {
+
 }

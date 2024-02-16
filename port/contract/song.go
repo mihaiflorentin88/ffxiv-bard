@@ -1,5 +1,7 @@
 package contract
 
+import "ffxvi-bard/port/dto"
+
 type Status int
 
 type EnsembleSize int
@@ -38,4 +40,6 @@ type SongInterface interface {
 	GetAverageRating() float64
 	GetFileCode() string
 	GetFile() []byte
+	ComputeChecksum()
+	ToDatabaseSongDTO() dto.DatabaseSongDTO
 }

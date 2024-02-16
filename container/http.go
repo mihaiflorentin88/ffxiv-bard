@@ -32,7 +32,11 @@ func GetSongController() *song.Controller {
 	if err != nil {
 		panic("Cannot access GenreRepository.")
 	}
-	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), genreRepo)
+	songRepo, err := GetSongRepository()
+	if err != nil {
+		panic("Cannot access GenreRepository.")
+	}
+	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), genreRepo, songRepo, GetMidiProcessor())
 }
 
 func GetMainController() *maincontroller.Controller {

@@ -3,7 +3,7 @@ package contract
 import "ffxvi-bard/port/dto"
 
 type UserRepositoryInterface interface {
-	FindById(id int) (*dto.DatabaseUser, error)
+	FindById(id int64) (*dto.DatabaseUser, error)
 	FindByUsername(username string) (*dto.DatabaseUser, error)
 	FindByEmail(email string) (*dto.DatabaseUser, error)
 	Create(user dto.DatabaseUser) error

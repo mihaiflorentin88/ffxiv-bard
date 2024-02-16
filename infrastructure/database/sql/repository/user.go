@@ -17,7 +17,7 @@ func NewUserRepository(driver contract.DatabaseDriverInterface) contract.UserRep
 	return &userRepository{driver: driver}
 }
 
-func (u *userRepository) FindById(id int) (*dto.DatabaseUser, error) {
+func (u *userRepository) FindById(id int64) (*dto.DatabaseUser, error) {
 	query := `
 		SELECT 
     		id,

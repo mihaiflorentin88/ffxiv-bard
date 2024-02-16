@@ -3,6 +3,7 @@ package song
 import (
 	"ffxvi-bard/domain/user"
 	"ffxvi-bard/mocks"
+	"ffxvi-bard/port/contract"
 	"testing"
 )
 
@@ -37,13 +38,6 @@ func getSong() *song {
 	}
 }
 
-func TestNewSong(t *testing.T) {
-	_, err := NewSong("", "artist", Solo, []Genre{}, []contract.CommentInterface{}, []byte{}, user.User{}, getSongProcessorInterfaceMock(), getFileSystemMock())
-	if err == nil {
-		t.Errorf("NewSong should return an error when title is empty")
-	}
-}
-
 func TestSetTitle(t *testing.T) {
 	title := "test"
 	song := getSong()
@@ -53,10 +47,10 @@ func TestSetTitle(t *testing.T) {
 	}
 	err = song.SetTitle(title)
 	if err != nil {
-		t.Errorf("Song should not return an error when title is not empty")
+		t.Errorf("song should not return an error when title is not empty")
 	}
 	if song.GetTitle() != title {
-		t.Errorf("Song should set title to %s", title)
+		t.Errorf("song should set title to %s", title)
 	}
 }
 

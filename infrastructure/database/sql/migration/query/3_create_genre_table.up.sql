@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS song_genre (
           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (song_id, genre_id),
-          FOREIGN KEY (song_id) REFERENCES song(id),
-          FOREIGN KEY (genre_id) REFERENCES genre(id)
+          FOREIGN KEY(song_id) REFERENCES song(id) ON DELETE CASCADE,
+          FOREIGN KEY(genre_id) REFERENCES genre(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_song_genre_song_id ON song_genre(song_id);

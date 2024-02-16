@@ -15,7 +15,7 @@ import (
 const ProviderDiscord = "discord"
 
 type User struct {
-	StorageID         int
+	StorageID         int64
 	Username          string
 	Email             string
 	Name              string

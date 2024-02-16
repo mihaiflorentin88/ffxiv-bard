@@ -3,7 +3,7 @@ package dto
 import "time"
 
 type DatabaseUser struct {
-	ID                int        `db:"id"`
+	ID                int64      `db:"id"`
 	Username          string     `db:"username"`
 	Email             string     `db:"email"`
 	Name              *string    `db:"name"`
@@ -23,7 +23,7 @@ type DatabaseUser struct {
 }
 
 func NewDatabaseUser(
-	id int,
+	id int64,
 	username string,
 	email string,
 	name,
