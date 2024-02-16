@@ -51,3 +51,22 @@
     opacity: 0.8;
 
 }
+
+.page-item {
+    background: #1d2124;
+    color: lightslategray;
+    opacity: 0.8;
+}
+
+.page-link {
+    background: #1d2124;
+    color: lightslategray;
+    opacity: 0.8;
+    border: none;
+}
+
+.page-item.disabled .page-link {
+    background: #1d2124;
+    color: dimgray;
+    opacity: 0.8;
+}
