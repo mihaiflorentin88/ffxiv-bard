@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-func EnabledRoutes(router *gin.Engine) {
-	container.GetHttpRenderer().EnableStatic(router)
-	container.GetSongRouter().EnableRoutes(router)
-	container.GetMainRouter().EnableRoutes(router)
-	container.GetAuthRouter().EnableRoutes(router)
+func RegisterRoutes(router *gin.Engine) {
+	container.GetHttpRenderer().RegisterStatic(router)
+	container.GetSongRouter().RegisterRoutes(router)
+	container.GetMainRouter().RegisterRoutes(router)
+	container.GetAuthRouter().RegisterRoutes(router)
 }
 
 func Server(port int, poolSize int) {
@@ -21,7 +21,7 @@ func Server(port int, poolSize int) {
 	router := container.GetGinRouter()
 	authMiddleware := container.GetAuthMiddleware()
 	router.Use(authMiddleware.GetLoggedUser())
-	EnabledRoutes(router)
+	RegisterRoutes(router)
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%v", port),
 		Handler:        router,

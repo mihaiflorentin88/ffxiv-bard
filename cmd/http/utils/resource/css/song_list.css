@@ -1,0 +1,53 @@
+.hero-header {
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-position: center;
+    padding-top: 70px; /* Adjust this value to match your menu's height */
+    padding-left: 170px
+}
+
+.hero-header .header {
+    width: 78%;
+    /*!*background: #495057;*/
+    background: rgba(73, 80, 87, 0.6);
+    padding: 1rem;
+    color: whitesmoke;
+    margin-top: 0;
+    z-index: 1;
+}
+
+.left-filter-block {
+    width: 25%;
+    position: absolute;
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: left;
+    align-items: baseline;
+    background-position: left;
+    padding-top: 70px;
+    padding-right: 10px
+}
+
+.left-filter-block .left-filter-panel {
+    width: 75%;
+    background: rgba(73, 80, 87, 0.6);
+    padding: 1rem;
+    color: whitesmoke;
+    margin-top: 0;
+    z-index: 1;
+}
+
+.card-body {
+}
+.card {
+    color: whitesmoke;
+    background: #1d2124;
+    margin-bottom: 5px;
+    opacity: 0.8;
+
+}

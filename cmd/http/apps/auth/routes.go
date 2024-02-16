@@ -15,7 +15,7 @@ func NewAuthRouter(controller *Controller) contract.RouterInterface {
 	}
 }
 
-func (r Router) EnableRoutes(router *gin.Engine) {
+func (r Router) RegisterRoutes(router *gin.Engine) {
 	router.GET("/auth/login", r.Controller.RenderLoginPage)
 	router.GET("/auth/logout", r.Controller.Logout)
 	router.GET("/auth/login/discord", r.Controller.LoginWithDiscord)

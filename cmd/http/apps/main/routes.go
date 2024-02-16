@@ -15,6 +15,6 @@ func NewMainRouter(controller *Controller) contract.RouterInterface {
 	}
 }
 
-func (r Router) EnableRoutes(router *gin.Engine) {
+func (r Router) RegisterRoutes(router *gin.Engine) {
 	router.GET("/", r.Controller.RenderIndex)
 }

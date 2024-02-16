@@ -33,7 +33,12 @@ func NewSongController(song contract.SongInterface, errorHandler contract.HttpEr
 
 func (s *Controller) RenderSongList(c *gin.Context) {
 	s.Renderer.
-		AddTemplate("resource/template/song/list_songs.gohtml").
+		RemoveTemplate("resource/template/base/additional_js.gohtml").
+		RemoveTemplate("resource/template/base/additional_styles.gohtml").
+		RemoveTemplate("resource/template/base/content0.gohtml").
+		AddTemplate("resource/template/song/list.gohtml").
+		AddTemplate("resource/template/song/list_css.gohtml").
+		AddTemplate("resource/template/song/list_js.gohtml").
 		Render(c, nil, http.StatusOK)
 }
 

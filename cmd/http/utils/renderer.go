@@ -36,6 +36,7 @@ func NewRenderer(errorHandler contract.HttpErrorHandlerInterface) contract.HttpR
 	}
 	defaultTemplates := []string{
 		"resource/template/base/base.gohtml",
+		"resource/template/base/content0.gohtml",
 		"resource/template/base/navbar.gohtml",
 		"resource/template/base/base_js.gohtml",
 		"resource/template/base/base_styles.gohtml",
@@ -88,7 +89,7 @@ func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 	}
 }
 
-func (r *renderer) EnableStatic(router *gin.Engine) {
+func (r *renderer) RegisterStatic(router *gin.Engine) {
 	cssFS, err := fs.Sub(r.StaticFS, "resource/css")
 	if err != nil {
 		panic("Cannot parse the css")
