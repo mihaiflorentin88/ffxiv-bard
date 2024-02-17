@@ -10,18 +10,20 @@ type Comment struct {
 	Author    user.User
 	Title     string
 	Content   string
+	Status    bool
 	Likes     int
 	Dislikes  int
 	Date      date.Date
 }
 
-func NewComment(title string, content string, author user.User, likes int, dislikes int) *Comment {
+func NewComment(title string, content string, author user.User, likes int, dislikes int, status bool) *Comment {
 	return &Comment{
 		Title:    title,
 		Content:  content,
 		Author:   author,
 		Likes:    likes,
 		Dislikes: dislikes,
+		Status:   status,
 	}
 }
 

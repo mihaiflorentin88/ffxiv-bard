@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS comment (
        title      TEXT NOT NULL,
        content    TEXT NOT NULL,
        likes      INTEGER DEFAULT 0,
+       status     BOOLEAN DEFAULT 0,
        dislikes   INTEGER DEFAULT 0,
        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

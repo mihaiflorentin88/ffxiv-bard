@@ -15,7 +15,7 @@ type sqliteDriver struct {
 }
 
 var (
-	instance *sql.DB
+	Instance *sql.DB
 	once     sync.Once
 	mu       sync.Mutex
 )
@@ -23,7 +23,7 @@ var (
 func NewSqlDriver(cfg *config.DatabaseConfig) (contract.DatabaseDriverInterface, error) {
 	var err error
 	once.Do(func() {
-		instance, err = sql.Open(cfg.Database, cfg.Path)
+		Instance, err = sql.Open(cfg.Database, cfg.Path)
 		if err != nil {
 			return
 		}
@@ -37,14 +37,14 @@ func NewSqlDriver(cfg *config.DatabaseConfig) (contract.DatabaseDriverInterface,
 func (d *sqliteDriver) getConnection() (*sql.DB, error) {
 	mu.Lock()
 	defer mu.Unlock()
-	err := instance.Ping()
+	err := Instance.Ping()
 	if err != nil {
-		instance, err = sql.Open(d.database, d.path)
+		Instance, err = sql.Open(d.database, d.path)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return instance, nil
+	return Instance, nil
 }
 
 func (d *sqliteDriver) Execute(query string, args ...interface{}) (sql.Result, error) {
@@ -72,7 +72,7 @@ func (d *sqliteDriver) FetchMany(query string, args ...interface{}) (*sql.Rows, 
 }
 
 func (d *sqliteDriver) Close() {
-	if instance != nil {
-		instance.Close()
+	if Instance != nil {
+		Instance.Close()
 	}
 }

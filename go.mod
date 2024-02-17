@@ -4,8 +4,10 @@ go 1.22.0
 
 require (
 	github.com/BurntSushi/toml v1.3.2
+	github.com/RichardKnop/go-fixtures v0.0.0-20191226211317-8d7ddb76c9e2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-faker/faker/v4 v4.3.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
@@ -13,6 +15,7 @@ require (
 	github.com/ravener/discord-oauth2 v0.0.0-20230514095040-ae65713199b3
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/oauth2 v0.14.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -53,7 +56,7 @@ require (
 	golang.org/x/tools v0.15.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v2 v2.2.1 // indirect
 	lukechampine.com/uint128 v1.3.0 // indirect
 	modernc.org/cc/v3 v3.41.0 // indirect
 	modernc.org/ccgo/v3 v3.16.15 // indirect
