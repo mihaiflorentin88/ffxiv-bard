@@ -1,36 +1,31 @@
 {{ define "base" }}
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    {{ template "base_styles" .}}
-    {{ template "additional_styles" .}}
-    <title>Music template!</title>
-  </head>
-  <body>
-  <!--navbar-->
-  {{ template "navbar" .}}
-  <!--main intro -->
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {{ template "base_styles" .}}
+        {{ template "additional_styles" .}}
+        <title>Music template!</title>
+    </head>
+    <body>
+    <!--navbar-->
+    {{ template "navbar" .}}
+    <!--main intro -->
 
-{{/*  <div class="container">*/}}
-    <!-- Sidebar -->
-    {{ template "content0" .}}
-
-    <!-- Main content -->
-    <div class="hero-header">
-      <div class="header">
-        {{ template "content" .}}
-      </div>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Main content -->
+            {{ template "content" .}}
+        </div>
     </div>
-{{/*  </div>*/}}
 
-  <!--footer-->
-  <!-- Footer content here -->
+    <!--footer-->
+    <!-- Footer content here -->
 
-  {{ template "base_js" .}}
-  {{ template "additional_js" .}}
-  </body>
-  </html>
+    {{ template "base_js" .}}
+    {{ template "additional_js" .}}
+    </body>
+    </html>
 {{ end }}

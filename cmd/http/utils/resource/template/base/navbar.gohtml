@@ -1,20 +1,20 @@
 {{define "navbar"}}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="/">Home</a>
-        <a class="navbar-brand" href="/song/list">Browse songs</a>
-        <a class="navbar-brand" href="/song/add">Add song</a>
+        <a class="navbar-brand" href="/"><i class="fa fa-home" aria-hidden="true"></i> Home</a>
+        <a class="navbar-brand" href="/song/list"><i class="fa fa-music" aria-hidden="true"></i> Browse songs</a>
+        <a class="navbar-brand" href="/song/add"><i class="fa fa-plus" aria-hidden="true"></i> Add song</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
+            <ul class="navbar-nav ms-auto">
                 {{ if not .User }}
                     <li class="nav-item active">
-                        <a class="nav-link" href="/auth/login">Login</a>
+                        <a class="nav-link" href="/auth/login"><i class="fa fa-sign-in" aria-hidden="true"></i> Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/auth/login">Sign Up</a>
+                        <a class="nav-link" href="/auth/signup"><i class="fa fa-user-plus" aria-hidden="true"></i> Sign Up</a> <!-- Make sure this is the correct link -->
                     </li>
                 {{ else }}
                     <!-- User Dropdown Menu -->
@@ -22,9 +22,9 @@
                         <a class="nav-link dropdown-toggle" href="#" id="userMenuLink" role="button"
                            data-bs-toggle="dropdown" aria-expanded="false">
                             {{ if .User.Name }}
-                               {{ .User.Name }} <!-- Display the name -->
+                                <i class="fa fa-user-circle" aria-hidden="true"></i> {{ .User.Name }} <!-- Display the name -->
                             {{ else }}
-                               {{ .User.Username }} <!-- Display the username -->
+                                <i class="fa fa-user" aria-hidden="true"></i> {{ .User.Username }} <!-- Display the username -->
                             {{ end }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuLink">

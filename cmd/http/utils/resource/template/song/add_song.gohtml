@@ -1,36 +1,41 @@
-    {{define "content"}}
-    <div class="container">
-        <h2>Add song</h2>
-        <form action="/song" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="title">Title:</label>
-                <input type="text" class="form-control" id="title" name="title" required>
+{{define "content"}}
+    <div class="hero-header">
+        <div class="header">
+            <div class="container">
+                <h2>Add song</h2>
+                <form action="/song" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="artist">Artist:</label>
+                        <input type="text" class="form-control" id="artist" name="artist" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ensembleSize">Ensemble size:</label>
+                        <select class="form-control" id="ensembleSize" name="ensembleSize" required>
+                            {{ range $id, $value := .Data.EnsembleSize }}
+                                <option value={{ $id }}>{{ $value }}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="genre multiple-select-clear-field">Select genres (multiselect):</label>
+                        <select class="form-select" name="genre" id="genre multiple-select-clear-field"
+                                data-placeholder="Choose anything" multiple required>
+                            {{range $element := .Data.Genres}}
+                                <option value="{{$element.ID}}">{{$element.Name}}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="formFile" class="form-label">Upload</label>
+                        <input class="form-control" name="file" type="file" id="formFile" accept=".mid,.midi" required>
+                    </div>
+                <button type="submit" class="btn btn-dark" id="filterBtn">Submit</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="artist">Artist:</label>
-                <input type="text" class="form-control" id="artist" name="artist" required>
-            </div>
-            <div class="form-group">
-                <label for="ensembleSize">Ensemble size:</label>
-                <select class="form-control" id="ensembleSize" name="ensembleSize" required>
-                    {{ range $id, $value := .Data.EnsembleSize }}
-                        <option value={{ $id }}>{{ $value }}</option>
-                        {{ end }}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="genre multiple-select-clear-field">Select genres (multiselect):</label>
-                <select class="form-select" name="genre" id="genre multiple-select-clear-field" data-placeholder="Choose anything" multiple required>
-                    {{range $element := .Data.Genres}}
-                        <option value="{{$element.ID}}">{{$element.Name}}</option>
-                    {{ end }}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="formFile" class="form-label">Upload</label>
-                <input class="form-control" name="file" type="file" id="formFile" accept=".mid,.midi" required>
-            </div>
-            <button type="submit" class="btn btn-success btn-sm">Submit</button>
-        </form>
+        </div>
     </div>
-    {{ end }}
+{{ end }}

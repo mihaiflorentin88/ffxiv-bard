@@ -32,6 +32,8 @@ func NewSongController(song contract.SongInterface, errorHandler contract.HttpEr
 }
 
 func (s *Controller) RenderSongList(c *gin.Context) {
+	form := form.NewSongList(s.SongRepository, s.ErrorHandler)
+	form.FetchData(c)
 	s.Renderer.
 		StartClean().
 		RemoveTemplate("resource/template/base/additional_js.gohtml").
@@ -39,17 +41,20 @@ func (s *Controller) RenderSongList(c *gin.Context) {
 		AddTemplate("resource/template/song/list.gohtml").
 		AddTemplate("resource/template/song/list_css.gohtml").
 		AddTemplate("resource/template/song/list_js.gohtml").
-		Render(c, nil, http.StatusOK)
+		Render(c, form, http.StatusOK)
 }
 
 func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
 	formViewData, err := form.NewAddNewSongFormView(s.Song, s.GenreRepository)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
+		return
 	}
 	s.Renderer.
 		StartClean().
+		RemoveTemplate("resource/template/base/additional_styles.gohtml").
 		AddTemplate("resource/template/song/add_song.gohtml").
+		AddTemplate("resource/template/song/add_song_css.gohtml").
 		Render(c, formViewData, http.StatusOK)
 }
 
@@ -63,7 +68,11 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	submittedForm := form.NewSongFormSubmitted(title, artist, ensembleSize, genre, fileHeader, s.ErrorHandler, c)
+	submittedForm, err := form.NewSongFormSubmitted(title, artist, ensembleSize, genre, fileHeader, s.ErrorHandler, c)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
 	songDTO := dto.AddNewSong(submittedForm.Title, submittedForm.Artist, submittedForm.EnsembleSize,
 		submittedForm.Genre, submittedForm.File, &submittedForm.User)
 	newSong, err := song.FromNewSongDTO(songDTO, s.SongRepository, s.GenreRepository, s.SongProcessor)

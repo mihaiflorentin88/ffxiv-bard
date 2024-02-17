@@ -38,7 +38,7 @@ type SongFormSubmitted struct {
 	User         user.User
 }
 
-func NewSongFormSubmitted(title string, artist string, ensembleSize string, genre []string, fileHeader *multipart.FileHeader, errorHandler contract.HttpErrorHandlerInterface, c *gin.Context) SongFormSubmitted {
+func NewSongFormSubmitted(title string, artist string, ensembleSize string, genre []string, fileHeader *multipart.FileHeader, errorHandler contract.HttpErrorHandlerInterface, c *gin.Context) (SongFormSubmitted, error) {
 	form := SongFormSubmitted{
 		Title:  title,
 		Artist: artist,
@@ -46,20 +46,20 @@ func NewSongFormSubmitted(title string, artist string, ensembleSize string, genr
 	file, err := fileHeader.Open()
 	if err != nil {
 		errorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-		return form
+		return form, err
 	}
 	defer file.Close()
 	form.File, err = io.ReadAll(file)
 	if err != nil {
 		errorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-		return form
+		return form, err
 	}
 	form.EnsembleSize, err = strconv.Atoi(ensembleSize)
 	for _, genreStr := range genre {
 		genreInt, err := strconv.Atoi(genreStr)
 		if err != nil {
 			errorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-			return form
+			return form, err
 		}
 		form.Genre = append(form.Genre, genreInt)
 	}
@@ -69,8 +69,8 @@ func NewSongFormSubmitted(title string, artist string, ensembleSize string, genr
 			form.User = *userObj // Dereference the pointer if you need the value type
 		} else {
 			errorHandler.RenderTemplate(errors.New("session user is not of the correct type"), http.StatusBadRequest, c)
-			return form
+			return form, err
 		}
 	}
-	return form
+	return form, nil
 }

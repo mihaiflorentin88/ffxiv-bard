@@ -21,7 +21,6 @@ func GetStaticFS() *embed.FS {
 func getDefaultTemplates() []string {
 	return []string{
 		"resource/template/base/base.gohtml",
-		"resource/template/base/content0.gohtml",
 		"resource/template/base/navbar.gohtml",
 		"resource/template/base/base_js.gohtml",
 		"resource/template/base/base_styles.gohtml",
@@ -78,6 +77,7 @@ func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 		if err != nil {
 			log.Println("Error parsing templates from FS. Reason: ", err)
 			r.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
+			return
 		}
 	}
 
@@ -92,8 +92,8 @@ func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 	c.Status(StatusCode)
 	err = tmpl.ExecuteTemplate(c.Writer, "base", renderedData)
 	if err != nil {
-		r.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		log.Println("Could not render template. Reason: ", err)
+		r.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 	}
 }
 

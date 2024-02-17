@@ -3,36 +3,32 @@ package song
 import (
 	"ffxvi-bard/domain/date"
 	"ffxvi-bard/domain/user"
+	"ffxvi-bard/port/contract"
 )
 
 type Comment struct {
-	storageID int
-	Author    user.User
-	Title     string
-	Content   string
-	Status    bool
-	Likes     int
-	Dislikes  int
-	Date      date.Date
+	storageID         int
+	Author            user.User
+	Title             string
+	Content           string
+	Status            bool
+	Date              date.Date
+	commentRepository contract.CommentRepositoryInterface
 }
 
-func NewComment(title string, content string, author user.User, likes int, dislikes int, status bool) *Comment {
+func NewComment(title string, content string, author user.User, status bool) *Comment {
 	return &Comment{
-		Title:    title,
-		Content:  content,
-		Author:   author,
-		Likes:    likes,
-		Dislikes: dislikes,
-		Status:   status,
+		Title:   title,
+		Content: content,
+		Author:  author,
+		Status:  status,
 	}
 }
 
-func (c *Comment) Like() {
-	c.Likes++
-}
-
-func (c *Comment) Dislike() {
-	c.Dislikes++
+func NewEmptyComment(commentRepository contract.CommentRepositoryInterface) Comment {
+	return Comment{
+		commentRepository: commentRepository,
+	}
 }
 
 func (c *Comment) GetStorageID() int {

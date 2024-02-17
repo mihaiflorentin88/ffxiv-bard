@@ -1,0 +1,12 @@
+.navbar-brand {
+    font-size: 1em;
+    margin-right: 0.9rem;
+    margin-left: 1rem;
+
+}
+
+.navbar .nav-link {
+    position: relative;
+    z-index: 1;
+}
+

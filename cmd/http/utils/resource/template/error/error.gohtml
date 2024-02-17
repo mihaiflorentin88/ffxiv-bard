@@ -1,17 +1,21 @@
 {{define "content"}}
-<h1>Something went wrong...</h1>
-<div class="error">
-    <p><b style="font-size: 14px">Error Message: </b>{{ .Message }}</p>
-</div>
-{{ if and .User .User.IsAdmin }}
-    <div class="traceback">
-        <p><b>Traceback: </b></p>
-        <ul>
-            {{ range .Traceback }}
-            <li>{{ . }}</li>
+    <div class="hero-header">
+        <div class="header">
+            <h1>Something went wrong...</h1>
+            <div class="error">
+                <p><b style="font-size: 14px">Error Message: </b>{{ .Message }}</p>
+            </div>
+            {{ if and .User .User.IsAdmin }}
+                <div class="traceback">
+                    <p><b>Traceback: </b></p>
+                    <ul>
+                        {{ range .Traceback }}
+                            <li>{{ . }}</li>
+                        {{ end }}
+                    </ul>
+                </div>
             {{ end }}
-        </ul>
+            <a href="/" class="btn btn-primary"> Go to Home Page</a>
+        </div>
     </div>
-    {{ end }}
-    <a href="/" class="btn btn-primary"> Go to Home Page</a>
 {{ end }}

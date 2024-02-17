@@ -2,7 +2,6 @@ package cli
 
 import (
 	"ffxvi-bard/container"
-	database "ffxvi-bard/infrastructure/database/sql/migration"
 	"github.com/spf13/cobra"
 )
 
@@ -13,11 +12,10 @@ var migrateCMD = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		up, _ := cmd.Flags().GetBool("up")
 		down, _ := cmd.Flags().GetBool("down")
-		config := container.GetConfig()
 		if !up && !down {
 			panic("Please provide a command type. Supported commands `up`, `down`")
 		}
-		driver := database.NewMigrationDriver(&config.Database)
+		driver := container.GetMigrationDriver()
 		var command string
 		if up {
 			command = "up"

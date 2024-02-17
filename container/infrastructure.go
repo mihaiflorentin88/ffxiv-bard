@@ -51,3 +51,19 @@ func GetSongRepository() (contract.SongRepositoryInterface, error) {
 	}
 	return repository.NewSongRepository(driver), nil
 }
+
+func GetRatingRepository() (contract.RatingRepositoryInterface, error) {
+	driver, err := GetDatabaseDriver()
+	if err != nil {
+		return nil, err
+	}
+	return repository.NewRatingRepository(driver), nil
+}
+
+func GetCommentRepository() (contract.CommentRepositoryInterface, error) {
+	driver, err := GetDatabaseDriver()
+	if err != nil {
+		return nil, err
+	}
+	return repository.NewCommentRepository(driver), nil
+}

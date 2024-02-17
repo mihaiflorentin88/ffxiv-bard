@@ -1,213 +1,70 @@
-{{define "content0"}}
-    <div class="left-filter-block">
-        <div class="left-filter-panel">
-            <form action="/song/list" method="get" enctype="multipart/form-data">
-                <input type="hidden" id="#pageParam" name="page" value="value1">
-                <div class="form-group">
-                    <input type="text" class="form-control" id="title" name="title" placeholder="Song title">
-                </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="artist" name="artist" placeholder="Artist">
-                </div>
-                <div class="form-group">
-                    <select class="form-control" id="ensembleSize" name="ensembleSize">
-                    <option style="color: rgb(128,128,128);" value="" disabled selected>Ensemble size</option>
-                        {{/*                        {{ range $id, $value := .Data.EnsembleSize }}*/}}
-{{/*                            <option value={{ $id }}>{{ $value }}</option>*/}}
-{{/*                        {{ end }}*/}}
-                        <option value="1">1</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <select class="form-control" id="genre" name="genre">
-                        <option style="color: rgb(128,128,128);" value="" disabled selected>Genre</option>
-                        <option value="1">1</option>
-{{/*                        {{range $element := .Data.Genres}}*/}}
-{{/*                            <option value="{{$element.ID}}">{{$element.Name}}</option>*/}}
-{{/*                        {{ end }}*/}}
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-dark" id="filterBtn">Filter</button>
-            </form>
+{{define "content"}}
+    {{/*< ---- right side of the page  ----> */}}
+    <div class="col-md-2">
+        <div class="left-filter-block">
+            <div class="left-filter-panel">
+                <form action="/song/list" method="get" enctype="multipart/form-data">
+                    <input type="hidden" id="#pageParam" name="page" value="value1">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Song title">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="artist" name="artist" placeholder="Artist">
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" id="ensembleSize" name="ensembleSize">
+                            <option style="color: rgb(128,128,128);" value="" disabled selected>Ensemble size</option>
+                            {{/*                        {{ range $id, $value := .Data.EnsembleSize }}*/}}
+                            {{/*                            <option value={{ $id }}>{{ $value }}</option>*/}}
+                            {{/*                        {{ end }}*/}}
+                            <option value="1">1</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" id="genre" name="genre">
+                            <option style="color: rgb(128,128,128);" value="" disabled selected>Genre</option>
+                            <option value="1">1</option>
+                            {{/*                        {{range $element := .Data.Genres}}*/}}
+                            {{/*                            <option value="{{$element.ID}}">{{$element.Name}}</option>*/}}
+                            {{/*                        {{ end }}*/}}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-dark" id="filterBtn">Filter</button>
+                </form>
+            </div>
         </div>
     </div>
-{{end}}
 
-{{define "content"}}
-    <nav aria-label="Page navigation example">
-        <ul class="pagination justify-content-center">
-            <li class="page-item disabled">
-                <a class="page-link">Previous</a>
-            </li>
-            <li class="page-item"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-                <a class="page-link" href="#">Next</a>
-            </li>
-        </ul>
-    </nav>
+    {{/*< ---- middle of the page  ----> */}}
+    <div class="col-md-10">
+        <div class="hero-header">
+            <div class="header">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link">Previous</a>
+                        </li>
+                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
 
-    <div class="row">
-        <div class="col-sm-3 mb-3 mb-sm-0">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                <div class="row">
+                    {{range .Data.Songs}}
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Special title treatment</h5>
+                                <p class="card-text">With supporting text below as a natural lead-in to additional
+                                    content.</p>
+                                <a href="#" class="btn btn-primary">Go somewhere</a>
+                            </div>
+                        </div>
+                    {{end}}
+
                 </div>
             </div>
         </div>

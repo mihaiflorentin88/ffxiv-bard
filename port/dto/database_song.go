@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type DatabaseSongDTO struct {
+type DatabaseSong struct {
 	ID            int        `json:"id" db:"id"`
 	Title         string     `json:"title" db:"title"`
 	Artist        string     `json:"artist" db:"artist"`

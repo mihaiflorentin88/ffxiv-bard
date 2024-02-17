@@ -7,23 +7,23 @@
     justify-content: center;
     align-items: center;
     background-position: center;
-    padding-top: 70px; /* Adjust this value to match your menu's height */
-    padding-left: 170px
+    padding-top: 70px;
 }
 
 .hero-header .header {
-    width: 78%;
-    /*/*background: #495057;*/
+    width: 100%;
     background: rgba(73, 80, 87, 0.6);
     padding: 1rem;
     color: whitesmoke;
     margin-top: 0;
     z-index: 1;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .left-filter-block {
-    width: 25%;
-    position: absolute;
+    width: 100%;
+    /*position: absolute;*/
     background-size: cover;
     background-repeat: no-repeat;
     display: flex;
@@ -31,11 +31,15 @@
     align-items: baseline;
     background-position: left;
     padding-top: 70px;
-    padding-right: 10px
+    /*padding-right: 10px*/
 }
 
 .left-filter-block .left-filter-panel {
-    width: 75%;
+    max-width: 281px;
+    max-height: 227px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
     background: rgba(73, 80, 87, 0.6);
     padding: 1rem;
     color: whitesmoke;
@@ -48,7 +52,12 @@
     background: #1d2124;
     margin-bottom: 10px;
     opacity: 0.8;
-
+    max-width: 397px;
+    max-height: 166px;
+    min-width: 303px;
+    min-height: 166px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .page-item {
@@ -71,6 +80,7 @@
 }
 
 button.btn.btn-dark {
+    margin-top: 5px;
     float: right;
     background: #1d2124;
     color: white;

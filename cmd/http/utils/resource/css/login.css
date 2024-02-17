@@ -26,3 +26,25 @@
 h4, p {
     text-align: center;
 }
+
+.hero-header {
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-position: center;
+    padding-top: 70px;
+}
+
+.hero-header .header {
+    width: 30%;
+    background: rgba(73, 80, 87, 0.6);
+    padding: 1rem;
+    color: whitesmoke;
+    margin-top: 0;
+    z-index: 1;
+    margin-left: auto;
+    margin-right: auto;
+}

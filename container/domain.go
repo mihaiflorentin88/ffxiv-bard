@@ -24,3 +24,19 @@ func GetMidiProcessor() contract.SongProcessorInterface {
 func GetEmptySong() contract.SongInterface {
 	return song.NewEmptySong(GetMidiProcessor(), GetFileSystem())
 }
+
+func GetEmptyGenre() song.Genre {
+	repository, err := GetGenreRepository()
+	if err != nil {
+		panic(fmt.Sprintf("Cannot instantiate the GenreRepository. Reason: %s", err))
+	}
+	return song.NewEmptyGenre(repository)
+}
+
+func GetEmptyComment() song.Comment {
+	repository, err := GetCommentRepository()
+	if err != nil {
+		panic(fmt.Sprintf("Cannot instantiate the GenreRepository. Reason: %s", err))
+	}
+	return song.NewEmptyComment(repository)
+}

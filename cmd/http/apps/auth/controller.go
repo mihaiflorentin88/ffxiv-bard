@@ -66,21 +66,25 @@ func (a *Controller) LoginWithDiscordCallback(c *gin.Context) {
 	response, err := a.Oauth.Auth().Client(c, token).Get("https://discord.com/api/users/@me")
 	if err != nil && response.StatusCode != 200 {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
+		return
 	}
 	userDTO, err := dto.DiscordUserFromHttpResponse(response, code, token)
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
+		return
 	}
 	loggedUser := user.FromDiscordUserDTO(userDTO, a.Oauth, a.UserRepository)
 	err = loggedUser.Persist()
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
+		return
 	}
 	defer response.Body.Close()
 	jwt := a.Oauth.GenerateJWT(loggedUser.Username)
 	userToken, err := a.Oauth.EncodeJWT(jwt)
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
+		return
 	}
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     "token",

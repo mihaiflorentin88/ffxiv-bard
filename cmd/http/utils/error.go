@@ -54,7 +54,7 @@ func (h *ErrorHandler) RenderTemplate(err error, statusCode int, c *gin.Context)
 		"resource/template/base/base_js.gohtml",
 		"resource/template/base/base_styles.gohtml",
 		"resource/template/base/additional_js.gohtml",
-		"resource/template/base/additional_styles.gohtml",
+		"resource/template/error/error_css.gohtml",
 	)
 	if err != nil {
 		statusCode = http.StatusInternalServerError

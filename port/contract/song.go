@@ -41,5 +41,5 @@ type SongInterface interface {
 	GetFileCode() string
 	GetFile() []byte
 	ComputeChecksum()
-	ToDatabaseSongDTO() dto.DatabaseSongDTO
+	ToDatabaseSongDTO() dto.DatabaseSong
 }

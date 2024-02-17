@@ -20,7 +20,7 @@ type FixtureEntry struct {
 
 func GenerateFixtures() {
 	users := make([]dto.DatabaseUser, 100)
-	songs := make([]dto.DatabaseSongDTO, 100)
+	songs := make([]dto.DatabaseSong, 100)
 	genres := make([]dto.DatabaseGenre, 100)
 	songGenres := make([]dto.DatabaseSongGenre, 100)
 	ratings := make([]dto.DatabaseRating, 100)

@@ -145,8 +145,8 @@ func FromNewSongDTO(newSongDto dto.NewSong, songRepository contract.SongReposito
 	return &song, nil
 }
 
-func (s *song) ToDatabaseSongDTO() dto.DatabaseSongDTO {
-	return dto.DatabaseSongDTO{
+func (s *song) ToDatabaseSongDTO() dto.DatabaseSong {
+	return dto.DatabaseSong{
 		ID:            s.storageID,
 		Title:         s.title,
 		Artist:        s.artist,

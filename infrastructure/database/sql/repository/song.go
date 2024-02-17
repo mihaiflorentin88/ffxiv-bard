@@ -16,7 +16,7 @@ func NewSongRepository(driver contract.DatabaseDriverInterface) contract.SongRep
 	}
 }
 
-func (s *SongRepository) InsertNewSong(song dto.DatabaseSongDTO, genreIDs []int) error {
+func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) error {
 	query := `
 		INSERT INTO song 
 		    (title, artist, ensemble_size, file_code, uploader_id, status, status_message, checksum, created_at, updated_at)
@@ -52,8 +52,8 @@ func (s *SongRepository) insertSongGenre(songID int64, genreID int) error {
 	return nil
 }
 
-func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSongDTO, error) {
-	var songDTO dto.DatabaseSongDTO
+func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, error) {
+	var songDTO dto.DatabaseSong
 
 	query := `SELECT id, title, artist, ensemble_size, file_code, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
 			  FROM song
@@ -61,7 +61,7 @@ func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSongDTO, e
 
 	row, err := s.driver.FetchOne(query, checksum)
 	if err != nil {
-		return dto.DatabaseSongDTO{}, fmt.Errorf("error executing query to find song by checksum: %w", err)
+		return dto.DatabaseSong{}, fmt.Errorf("error executing query to find song by checksum: %w", err)
 	}
 	err = row.Scan(
 		&songDTO.ID,
@@ -78,8 +78,31 @@ func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSongDTO, e
 		&songDTO.UpdatedAt,
 	)
 	if err != nil {
-		return dto.DatabaseSongDTO{}, fmt.Errorf("error scanning song by checksum: %w", err)
+		return dto.DatabaseSong{}, fmt.Errorf("error scanning song by checksum: %w", err)
 	}
 
 	return songDTO, nil
+}
+
+func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
+	var songs []dto.DatabaseSong
+	query := `SELECT id, title, artist, ensemble_size, file_code, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
+			  FROM song`
+
+	rows, err := s.driver.FetchMany(query)
+	if err != nil {
+		return nil, fmt.Errorf("error executing query to find song by checksum: %w", err)
+	}
+	for rows.Next() {
+		var song dto.DatabaseSong
+		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.FileCode, &song.UploaderID, &song.Status, &song.StatusMessage, &song.Checksum, &song.LockExpireTS, &song.CreatedAt, &song.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		songs = append(songs, song)
+		if err = rows.Err(); err != nil {
+			return nil, err
+		}
+	}
+	return &songs, nil
 }

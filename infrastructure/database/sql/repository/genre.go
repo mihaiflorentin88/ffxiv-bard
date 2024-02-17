@@ -71,3 +71,32 @@ func (g *GenreRepository) FetchByIDs(genreIDs []int) ([]dto.DatabaseGenre, error
 	}
 	return genres, nil
 }
+
+func (g *GenreRepository) FetchBySongIDs(songIDs []int) (*[]dto.DatabaseGenre, error) {
+	var genres []dto.DatabaseGenre
+	placeholder := make([]string, len(songIDs))
+	for i := range placeholder {
+		placeholder[i] = "?"
+	}
+	query := fmt.Sprintf(`
+		SELECT g.id, g.name
+		FROM genre g
+		INNER JOIN song_genre g on sg.genre_id = g.id 
+		WHERE sg.song_id in (%s)`, strings.Join(placeholder, ","))
+	args := make([]interface{}, len(songIDs))
+	for i, id := range songIDs {
+		args[i] = id
+	}
+	rows, err := g.driver.FetchMany(query, args)
+	for rows.Next() {
+		var genre dto.DatabaseGenre
+		if err := rows.Scan(&genre.ID, &genre.Name); err != nil {
+			return nil, err
+		}
+		genres = append(genres, genre)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return &genres, nil
+}
