@@ -33,9 +33,9 @@ func NewSongController(song contract.SongInterface, errorHandler contract.HttpEr
 
 func (s *Controller) RenderSongList(c *gin.Context) {
 	s.Renderer.
+		StartClean().
 		RemoveTemplate("resource/template/base/additional_js.gohtml").
 		RemoveTemplate("resource/template/base/additional_styles.gohtml").
-		RemoveTemplate("resource/template/base/content0.gohtml").
 		AddTemplate("resource/template/song/list.gohtml").
 		AddTemplate("resource/template/song/list_css.gohtml").
 		AddTemplate("resource/template/song/list_js.gohtml").
@@ -48,6 +48,7 @@ func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 	}
 	s.Renderer.
+		StartClean().
 		AddTemplate("resource/template/song/add_song.gohtml").
 		Render(c, formViewData, http.StatusOK)
 }

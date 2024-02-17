@@ -1,5 +1,39 @@
-{{define "content"}}
+{{define "content0"}}
+    <div class="left-filter-block">
+        <div class="left-filter-panel">
+            <form action="/song/list" method="get" enctype="multipart/form-data">
+                <input type="hidden" id="#pageParam" name="page" value="value1">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="title" name="title" placeholder="Song title">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="artist" name="artist" placeholder="Artist">
+                </div>
+                <div class="form-group">
+                    <select class="form-control" id="ensembleSize" name="ensembleSize">
+                    <option style="color: rgb(128,128,128);" value="" disabled selected>Ensemble size</option>
+                        {{/*                        {{ range $id, $value := .Data.EnsembleSize }}*/}}
+{{/*                            <option value={{ $id }}>{{ $value }}</option>*/}}
+{{/*                        {{ end }}*/}}
+                        <option value="1">1</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" id="genre" name="genre">
+                        <option style="color: rgb(128,128,128);" value="" disabled selected>Genre</option>
+                        <option value="1">1</option>
+{{/*                        {{range $element := .Data.Genres}}*/}}
+{{/*                            <option value="{{$element.ID}}">{{$element.Name}}</option>*/}}
+{{/*                        {{ end }}*/}}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-dark" id="filterBtn">Filter</button>
+            </form>
+        </div>
+    </div>
+{{end}}
 
+{{define "content"}}
     <nav aria-label="Page navigation example">
         <ul class="pagination justify-content-center">
             <li class="page-item disabled">
@@ -176,22 +210,6 @@
                     <a href="#" class="btn btn-primary">Go somewhere</a>
                 </div>
             </div>
-        </div>
-    </div>
-{{end}}
-
-{{define "content0"}}
-    <div class="left-filter-block">
-        <div class="left-filter-panel">
-            <ul>
-                <li>a</li>
-                <li>a</li>
-                <li>a</li>
-                <li>a</li>
-                <li>a</li>
-                <li>a</li>
-                <li>a</li>
-            </ul>
         </div>
     </div>
 {{end}}

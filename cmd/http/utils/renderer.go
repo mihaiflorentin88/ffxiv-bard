@@ -18,6 +18,18 @@ func GetStaticFS() *embed.FS {
 	return &staticFS
 }
 
+func getDefaultTemplates() []string {
+	return []string{
+		"resource/template/base/base.gohtml",
+		"resource/template/base/content0.gohtml",
+		"resource/template/base/navbar.gohtml",
+		"resource/template/base/base_js.gohtml",
+		"resource/template/base/base_styles.gohtml",
+		"resource/template/base/additional_js.gohtml",
+		"resource/template/base/additional_styles.gohtml",
+	}
+}
+
 type renderer struct {
 	StaticFS     *embed.FS
 	Templates    []string
@@ -34,21 +46,17 @@ func NewRenderer(errorHandler contract.HttpErrorHandlerInterface) contract.HttpR
 		StaticFS:     GetStaticFS(),
 		ErrorHandler: errorHandler,
 	}
-	defaultTemplates := []string{
-		"resource/template/base/base.gohtml",
-		"resource/template/base/content0.gohtml",
-		"resource/template/base/navbar.gohtml",
-		"resource/template/base/base_js.gohtml",
-		"resource/template/base/base_styles.gohtml",
-		"resource/template/base/additional_js.gohtml",
-		"resource/template/base/additional_styles.gohtml",
-	}
-	r.Templates = defaultTemplates
+	r.Templates = getDefaultTemplates()
 	return r
 }
 
 func (r *renderer) AddTemplate(file string) contract.HttpRenderer {
 	r.Templates = append(r.Templates, file)
+	return r
+}
+
+func (r *renderer) StartClean() contract.HttpRenderer {
+	r.Templates = getDefaultTemplates()
 	return r
 }
 

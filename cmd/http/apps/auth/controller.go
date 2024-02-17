@@ -28,6 +28,7 @@ func NewAuthController(errorHandler contract.HttpErrorHandlerInterface, renderer
 
 func (a *Controller) RenderLoginPage(c *gin.Context) {
 	a.Renderer.
+		StartClean().
 		AddTemplate("resource/template/auth/login.gohtml").
 		AddTemplate("resource/template/auth/login_css.gohtml").
 		RemoveTemplate("resource/template/base/additional_styles.gohtml").

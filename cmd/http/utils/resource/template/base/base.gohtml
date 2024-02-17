@@ -1,5 +1,6 @@
 {{ define "base" }}
-<html lang="en">
+  <!DOCTYPE html>
+  <html lang="en">
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -9,25 +10,27 @@
     <title>Music template!</title>
   </head>
   <body>
-    <!--navbar-->
-    {{ template "navbar" .}}
-    <!--main intro -->
-<!--    <div class="hero-header" style="background-image: url('/_resource/img/music.jpg')">-->
+  <!--navbar-->
+  {{ template "navbar" .}}
+  <!--main intro -->
+
+{{/*  <div class="container">*/}}
+    <!-- Sidebar -->
     {{ template "content0" .}}
+
+    <!-- Main content -->
     <div class="hero-header">
       <div class="header">
-          {{ template "content" .}}
-        </div>
+        {{ template "content" .}}
+      </div>
     </div>
+{{/*  </div>*/}}
 
-    <!--main content-->
-    <!--footer-->
-<!--    <div class="py-3 text-center bg-light">-->
-<!--      <p class="m-0">Copyright by <a href="http://bootcatch.com/lightly">Bootcatch.com</a> 2019</p>-->
-<!--    </div>-->
+  <!--footer-->
+  <!-- Footer content here -->
 
   {{ template "base_js" .}}
   {{ template "additional_js" .}}
   </body>
-</html>
+  </html>
 {{ end }}

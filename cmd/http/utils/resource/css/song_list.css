@@ -1,3 +1,4 @@
+
 .hero-header {
     width: 100%;
     background-size: cover;
@@ -12,7 +13,7 @@
 
 .hero-header .header {
     width: 78%;
-    /*!*background: #495057;*/
+    /*/*background: #495057;*/
     background: rgba(73, 80, 87, 0.6);
     padding: 1rem;
     color: whitesmoke;
@@ -42,12 +43,10 @@
     z-index: 1;
 }
 
-.card-body {
-}
 .card {
     color: whitesmoke;
     background: #1d2124;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     opacity: 0.8;
 
 }
@@ -69,4 +68,37 @@
     background: #1d2124;
     color: dimgray;
     opacity: 0.8;
+}
+
+button.btn.btn-dark {
+    float: right;
+    background: #1d2124;
+    color: white;
+    opacity: 0.8;
+}
+
+.form-control {
+    background: #1d2124;
+    color: white;
+    opacity: 0.8;
+}
+
+.placeholder {
+    color: dimgray;
+}
+
+.form-control option {
+    color: black;
+}
+
+.form-control option:first-of-type {
+    font-weight: normal;
+}
+
+.form-control option {
+    font-weight: normal;
+}
+
+div .card:hover {
+    cursor: pointer;
 }

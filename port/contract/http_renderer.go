@@ -7,4 +7,5 @@ type HttpRenderer interface {
 	RemoveTemplate(file string) HttpRenderer
 	Render(c *gin.Context, data interface{}, StatusCode int)
 	RegisterStatic(router *gin.Engine)
+	StartClean() HttpRenderer
 }
