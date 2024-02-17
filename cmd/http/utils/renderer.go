@@ -111,18 +111,7 @@ func (r *renderer) RegisterStatic(router *gin.Engine) {
 		panic("Cannot parse the img")
 	}
 
-	fontAwesomeCSS, err := fs.Sub(r.StaticFS, "resource/font-awesome/css")
-	if err != nil {
-		panic("Cannot parse the fa folder")
-	}
-	fontAwesomeFonts, err := fs.Sub(r.StaticFS, "resource/font-awesome/fonts")
-	if err != nil {
-		panic("Cannot parse the fa folder")
-	}
-
 	router.StaticFS("/_resource/css", http.FS(cssFS))
-	router.StaticFS("/_resource/fa-css", http.FS(fontAwesomeCSS))
-	router.StaticFS("/_resource/fa-fonts", http.FS(fontAwesomeFonts))
 	router.StaticFS("/_resource/js", http.FS(jsFS))
 	router.StaticFS("/_resource/img", http.FS(imgFS))
 }
