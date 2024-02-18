@@ -9,9 +9,13 @@ import (
 	"ffxvi-bard/port/contract"
 )
 
-func GetDatabaseDriver() (contract.DatabaseDriverInterface, error) {
+func GetDatabaseDriver() contract.DatabaseDriverInterface {
 	config := GetConfig()
-	return database.NewSqlDriver(&config.Database)
+	driver, err := database.NewSqlDriver(&config.Database)
+	if err != nil {
+		panic("Cannot access UserRepository.")
+	}
+	return driver
 }
 
 func GetMigrationDriver() contract.SqlMigrationDriverInterface {
@@ -28,42 +32,22 @@ func GetDiscordAuth() contract.Oauth {
 	return oauth.NewDiscordOauth(&config.Discord)
 }
 
-func GetUserRepository() (contract.UserRepositoryInterface, error) {
-	driver, err := GetDatabaseDriver()
-	if err != nil {
-		return nil, err
-	}
-	return repository.NewUserRepository(driver), nil
+func GetUserRepository() contract.UserRepositoryInterface {
+	return repository.NewUserRepository(GetDatabaseDriver())
 }
 
-func GetGenreRepository() (contract.GenreRepositoryInterface, error) {
-	driver, err := GetDatabaseDriver()
-	if err != nil {
-		return nil, err
-	}
-	return repository.NewGenreRepository(driver), nil
+func GetGenreRepository() contract.GenreRepositoryInterface {
+	return repository.NewGenreRepository(GetDatabaseDriver())
 }
 
-func GetSongRepository() (contract.SongRepositoryInterface, error) {
-	driver, err := GetDatabaseDriver()
-	if err != nil {
-		return nil, err
-	}
-	return repository.NewSongRepository(driver), nil
+func GetSongRepository() contract.SongRepositoryInterface {
+	return repository.NewSongRepository(GetDatabaseDriver())
 }
 
-func GetRatingRepository() (contract.RatingRepositoryInterface, error) {
-	driver, err := GetDatabaseDriver()
-	if err != nil {
-		return nil, err
-	}
-	return repository.NewRatingRepository(driver), nil
+func GetRatingRepository() contract.RatingRepositoryInterface {
+	return repository.NewRatingRepository(GetDatabaseDriver())
 }
 
-func GetCommentRepository() (contract.CommentRepositoryInterface, error) {
-	driver, err := GetDatabaseDriver()
-	if err != nil {
-		return nil, err
-	}
-	return repository.NewCommentRepository(driver), nil
+func GetCommentRepository() contract.CommentRepositoryInterface {
+	return repository.NewCommentRepository(GetDatabaseDriver())
 }

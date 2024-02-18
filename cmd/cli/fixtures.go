@@ -19,10 +19,7 @@ var FixturesCMD = &cobra.Command{
 			fixtures.GenerateFixtures()
 		}
 		if execute {
-			databaseDriver, err := container.GetDatabaseDriver()
-			if err != nil {
-				panic("Cannot connect to database")
-			}
+			databaseDriver := container.GetDatabaseDriver()
 			fixtures := fixtures.NewFixtures(databaseDriver)
 			fixtures.Execute()
 		}

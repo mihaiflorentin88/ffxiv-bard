@@ -4,18 +4,17 @@ import (
 	"errors"
 	"ffxvi-bard/domain/date"
 	"ffxvi-bard/domain/user"
-	"ffxvi-bard/port/contract"
 )
 
 type Rating struct {
-	storageId int
-	Song      contract.SongInterface
-	Author    user.User
+	StorageId int
+	Song      *Song
+	Author    *user.User
 	rating    int
 	Date      date.Date
 }
 
-func NewSongRanking(song contract.SongInterface, user user.User, rating int) (*Rating, error) {
+func NewSongRanking(song *Song, user *user.User, rating int) (*Rating, error) {
 	if rating < 0 || rating > 10 {
 		return nil, errors.New("rating must be between 0 and 10")
 	}
@@ -30,38 +29,6 @@ func (r *Rating) SetRanking(rating int) error {
 	return nil
 }
 
-func (r *Rating) GetRanking() int {
+func (r *Rating) GetRating() int {
 	return r.rating
-}
-
-func (r *Rating) GetStorageID() int {
-	return r.storageId
-}
-
-func (r *Rating) SetStorageID(id int) {
-	r.storageId = id
-}
-
-func (r *Rating) GetSong() contract.SongInterface {
-	return r.Song
-}
-
-func (r *Rating) GetAuthor() user.User {
-	return r.Author
-}
-
-func (r *Rating) SetSong(song contract.SongInterface) {
-	r.Song = song
-}
-
-func (r *Rating) SetAuthor(author user.User) {
-	r.Author = author
-}
-
-func (r *Rating) Like() {
-	r.rating++
-}
-
-func (r *Rating) Dislike() {
-	r.rating--
 }

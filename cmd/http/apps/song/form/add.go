@@ -2,75 +2,33 @@ package form
 
 import (
 	"errors"
-	"ffxvi-bard/domain/user"
+	"ffxvi-bard/domain/song"
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"strconv"
 )
 
 type NewSongFormView struct {
-	EnsembleSize map[int]string
-	Genres       []dto.DatabaseGenre
+	EnsembleSize    map[int]string
+	Genres          []dto.DatabaseGenre
+	genreRepository contract.GenreRepositoryInterface
+	song            *song.Song
 }
 
-func NewAddNewSongFormView(song contract.SongInterface, genreRepository contract.GenreRepositoryInterface) (NewSongFormView, error) {
-	form := NewSongFormView{}
-	genres, err := genreRepository.FetchAll()
-	if err != nil {
-		return form, errors.New(fmt.Sprintf("failed to fetch available genres. Reason: %s", err))
+func NewAddNewSongFormView(song *song.Song, genreRepository contract.GenreRepositoryInterface) NewSongFormView {
+	return NewSongFormView{
+		genreRepository: genreRepository,
+		song:            song,
 	}
-	form.Genres = genres
-	form.EnsembleSize = song.GetDetailedEnsembleString()
-	return form, nil
+
 }
 
-type SongFormSubmitted struct {
-	Title        string
-	Artist       string
-	EnsembleSize int
-	Genre        []int
-	File         []byte
-	User         user.User
-}
-
-func NewSongFormSubmitted(title string, artist string, ensembleSize string, genre []string, fileHeader *multipart.FileHeader, errorHandler contract.HttpErrorHandlerInterface, c *gin.Context) (SongFormSubmitted, error) {
-	form := SongFormSubmitted{
-		Title:  title,
-		Artist: artist,
-	}
-	file, err := fileHeader.Open()
+func (f NewSongFormView) GetData() (NewSongFormView, error) {
+	genres, err := f.genreRepository.FetchAll()
 	if err != nil {
-		errorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-		return form, err
+		return f, errors.New(fmt.Sprintf("failed to fetch available genres. Reason: %s", err))
 	}
-	defer file.Close()
-	form.File, err = io.ReadAll(file)
-	if err != nil {
-		errorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-		return form, err
-	}
-	form.EnsembleSize, err = strconv.Atoi(ensembleSize)
-	for _, genreStr := range genre {
-		genreInt, err := strconv.Atoi(genreStr)
-		if err != nil {
-			errorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-			return form, err
-		}
-		form.Genre = append(form.Genre, genreInt)
-	}
-	storedUser, exists := c.Get("user")
-	if exists && storedUser != nil {
-		if userObj, ok := storedUser.(*user.User); ok { // Note the asterisk (*) indicating a pointer type
-			form.User = *userObj // Dereference the pointer if you need the value type
-		} else {
-			errorHandler.RenderTemplate(errors.New("session user is not of the correct type"), http.StatusBadRequest, c)
-			return form, err
-		}
-	}
-	return form, nil
+	f.Genres = genres
+	f.EnsembleSize = f.song.GetDetailedEnsembleString()
+	return f, nil
 }

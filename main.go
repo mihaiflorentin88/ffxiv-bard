@@ -30,10 +30,7 @@ import (
 func main() {
 	cli.Execute()
 
-	connection, err := container.GetDatabaseDriver()
-	if err != nil {
-		return
-	}
+	connection := container.GetDatabaseDriver()
 	defer connection.Close()
 
 	//signals := make(chan os.Signal, 1)

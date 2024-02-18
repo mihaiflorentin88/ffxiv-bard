@@ -4,11 +4,11 @@ import (
 	"ffxvi-bard/cmd/http/apps/auth"
 	maincontroller "ffxvi-bard/cmd/http/apps/main"
 	"ffxvi-bard/cmd/http/apps/song"
+	"ffxvi-bard/cmd/http/apps/song/form"
 	"ffxvi-bard/cmd/http/utils"
 	"ffxvi-bard/cmd/http/utils/middleware"
 	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 func GetErrorHandler() contract.HttpErrorHandlerInterface {
@@ -28,15 +28,7 @@ func GetAuthMiddleware() middleware.AuthMiddleware {
 }
 
 func GetSongController() *song.Controller {
-	genreRepo, err := GetGenreRepository()
-	if err != nil {
-		panic("Cannot access GenreRepository.")
-	}
-	songRepo, err := GetSongRepository()
-	if err != nil {
-		panic("Cannot access GenreRepository.")
-	}
-	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), genreRepo, songRepo, GetMidiProcessor())
+	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetAddSongFormProcessor(), GetNewSongListingForm(), GetNewSongFormView())
 }
 
 func GetMainController() *maincontroller.Controller {
@@ -48,11 +40,7 @@ func GetSongRouter() contract.RouterInterface {
 }
 
 func getAuthController() *auth.Controller {
-	r, err := GetUserRepository()
-	if err != nil {
-		log.Println(err)
-	}
-	return auth.NewAuthController(GetErrorHandler(), GetHttpRenderer(), GetDiscordAuth(), r)
+	return auth.NewAuthController(GetErrorHandler(), GetHttpRenderer(), GetDiscordAuth(), GetUserRepository())
 }
 
 func GetMainRouter() contract.RouterInterface {
@@ -61,4 +49,16 @@ func GetMainRouter() contract.RouterInterface {
 
 func GetAuthRouter() contract.RouterInterface {
 	return auth.NewAuthRouter(getAuthController())
+}
+
+func GetAddSongFormProcessor() form.AddSongFormProcessor {
+	return form.NewSongFormProcessor(GetSongRepository(), GetGenreRepository(), GetMidiProcessor())
+}
+
+func GetNewSongListingForm() form.SongList {
+	return form.NewSongList(GetSongRepository(), GetErrorHandler())
+}
+
+func GetNewSongFormView() form.NewSongFormView {
+	return form.NewAddNewSongFormView(GetEmptySong(), GetGenreRepository())
 }

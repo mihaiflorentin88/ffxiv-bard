@@ -1,39 +1,43 @@
 package song
 
 import (
+	"errors"
 	"ffxvi-bard/cmd/http/apps/song/form"
 	"ffxvi-bard/domain/song"
+	"ffxvi-bard/domain/user"
 	"ffxvi-bard/port/contract"
-	"ffxvi-bard/port/dto"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type Controller struct {
-	Song            contract.SongInterface
-	GenreRepository contract.GenreRepositoryInterface
-	ErrorHandler    contract.HttpErrorHandlerInterface
-	Renderer        contract.HttpRenderer
-	SongRepository  contract.SongRepositoryInterface
-	SongProcessor   contract.SongProcessorInterface
+	Song                 *song.Song
+	ErrorHandler         contract.HttpErrorHandlerInterface
+	Renderer             contract.HttpRenderer
+	addSongFormProcessor form.AddSongFormProcessor
+	songListForm         form.SongList
+	newSongFormView      form.NewSongFormView
 }
 
-func NewSongController(song contract.SongInterface, errorHandler contract.HttpErrorHandlerInterface,
-	renderer contract.HttpRenderer, genreRepository contract.GenreRepositoryInterface,
-	songRepository contract.SongRepositoryInterface, songProcessor contract.SongProcessorInterface) *Controller {
+func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer,
+	addSongFormProcessor form.AddSongFormProcessor, songListForm form.SongList, newSongFormView form.NewSongFormView) *Controller {
 	return &Controller{
-		Song:            song,
-		GenreRepository: genreRepository,
-		ErrorHandler:    errorHandler,
-		Renderer:        renderer,
-		SongRepository:  songRepository,
-		SongProcessor:   songProcessor,
+		Song:                 song,
+		ErrorHandler:         errorHandler,
+		Renderer:             renderer,
+		addSongFormProcessor: addSongFormProcessor,
+		songListForm:         songListForm,
+		newSongFormView:      newSongFormView,
 	}
 }
 
 func (s *Controller) RenderSongList(c *gin.Context) {
-	form := form.NewSongList(s.SongRepository, s.ErrorHandler)
-	form.FetchData(c)
+	songListForm, err := s.songListForm.FetchData()
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
+		return
+	}
 	s.Renderer.
 		StartClean().
 		RemoveTemplate("resource/template/base/additional_js.gohtml").
@@ -41,11 +45,11 @@ func (s *Controller) RenderSongList(c *gin.Context) {
 		AddTemplate("resource/template/song/list.gohtml").
 		AddTemplate("resource/template/song/list_css.gohtml").
 		AddTemplate("resource/template/song/list_js.gohtml").
-		Render(c, form, http.StatusOK)
+		Render(c, songListForm, http.StatusOK)
 }
 
 func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
-	formViewData, err := form.NewAddNewSongFormView(s.Song, s.GenreRepository)
+	newSongForm, err := s.newSongFormView.GetData()
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		return
@@ -55,7 +59,7 @@ func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
 		RemoveTemplate("resource/template/base/additional_styles.gohtml").
 		AddTemplate("resource/template/song/add_song.gohtml").
 		AddTemplate("resource/template/song/add_song_css.gohtml").
-		Render(c, formViewData, http.StatusOK)
+		Render(c, newSongForm, http.StatusOK)
 }
 
 func (s *Controller) HandleAddNewSong(c *gin.Context) {
@@ -68,22 +72,17 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	submittedForm, err := form.NewSongFormSubmitted(title, artist, ensembleSize, genre, fileHeader, s.ErrorHandler, c)
+	sessionUser, _ := c.Get("user")
+	loggedUser, err := user.FromSession(sessionUser)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("cannot load user: Reason %s. Try relogging", err))
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	err = s.addSongFormProcessor.Process(title, artist, ensembleSize, genre, fileHeader, loggedUser)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	songDTO := dto.AddNewSong(submittedForm.Title, submittedForm.Artist, submittedForm.EnsembleSize,
-		submittedForm.Genre, submittedForm.File, &submittedForm.User)
-	newSong, err := song.FromNewSongDTO(songDTO, s.SongRepository, s.GenreRepository, s.SongProcessor)
-	if err != nil {
-		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-		return
-	}
-	songDatabaseDto := newSong.ToDatabaseSongDTO()
-	err = s.SongRepository.InsertNewSong(songDatabaseDto, songDTO.Genre)
-	if err != nil {
-		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
-		return
-	}
+	c.Redirect(http.StatusFound, "/song/add")
 }

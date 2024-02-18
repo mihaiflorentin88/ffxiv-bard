@@ -5,15 +5,10 @@ import (
 	"ffxvi-bard/domain/song/processor"
 	"ffxvi-bard/domain/user"
 	"ffxvi-bard/port/contract"
-	"fmt"
 )
 
 func GetNewEmptyUser() *user.User {
-	userRepository, err := GetUserRepository()
-	if err != nil {
-		panic(fmt.Sprintf("Cannot instantiate the UserRepository. Reason: %s", err))
-	}
-	return user.NewEmptyUser(userRepository)
+	return user.NewEmptyUser(GetUserRepository())
 }
 
 func GetMidiProcessor() contract.SongProcessorInterface {
@@ -21,22 +16,14 @@ func GetMidiProcessor() contract.SongProcessorInterface {
 	return processor.NewMidiProcessor(config.UnfinishedFilesPath, config.FinishedFilesPath, GetFileSystem())
 }
 
-func GetEmptySong() contract.SongInterface {
+func GetEmptySong() *song.Song {
 	return song.NewEmptySong(GetMidiProcessor(), GetFileSystem())
 }
 
 func GetEmptyGenre() song.Genre {
-	repository, err := GetGenreRepository()
-	if err != nil {
-		panic(fmt.Sprintf("Cannot instantiate the GenreRepository. Reason: %s", err))
-	}
-	return song.NewEmptyGenre(repository)
+	return song.NewEmptyGenre(GetGenreRepository())
 }
 
 func GetEmptyComment() song.Comment {
-	repository, err := GetCommentRepository()
-	if err != nil {
-		panic(fmt.Sprintf("Cannot instantiate the GenreRepository. Reason: %s", err))
-	}
-	return song.NewEmptyComment(repository)
+	return song.NewEmptyComment(GetCommentRepository())
 }

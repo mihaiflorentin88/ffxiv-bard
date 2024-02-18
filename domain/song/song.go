@@ -14,44 +14,48 @@ import (
 	"time"
 )
 
-type Status = contract.Status
-type EnsembleSize = contract.EnsembleSize
+type Status int
+type EnsembleSize int
 
-const ( // Make sure the order of these constants match the order of the Status enum in port/song.go
-	Pending    = contract.Pending
-	Processing = contract.Processing
-	Processed  = contract.Processed
-	Failed     = contract.Failed
-	Deleted    = contract.Deleted
+const ( // If you change anything here. You will also need to change the StatusString() function
+	Pending Status = iota
+	Processing
+	Processed
+	Failed
+	Deleted
 )
 
-const ( // Make sure the order of these constants match the order of the EnsembleSize enum in port/song.go
-	Solo    = contract.Solo
-	Duet    = contract.Duet
-	Trio    = contract.Trio
-	Quartet = contract.Quartet
-	Quintet = contract.Quintet
-	Sextet  = contract.Sextet
-	Septet  = contract.Septet
-	Octet   = contract.Octet
+const ( // If you change anything here. You will also need to change the EnsembleString() function
+	Solo EnsembleSize = iota
+	Duet
+	Trio
+	Quartet
+	Quintet
+	Sextet
+	Septet
+	Octet
 )
 
 var EnsembleSizes []EnsembleSize = []EnsembleSize{
-	contract.Solo,    // 0
-	contract.Duet,    // 1
-	contract.Trio,    // 2
-	contract.Quartet, // 3
-	contract.Quintet, // 4
-	contract.Sextet,  // 5
-	contract.Septet,  // 6
-	contract.Octet,   // 7
+	Solo,    // 0
+	Duet,    // 1
+	Trio,    // 2
+	Quartet, // 3
+	Quintet, // 4
+	Sextet,  // 5
+	Septet,  // 6
+	Octet,   // 7
 }
 
-func GetEnsembleSize(size int) (contract.EnsembleSize, error) {
+func GetEnsembleSizeFromInt(size int) (EnsembleSize, error) {
 	if size >= 0 && size < len(EnsembleSizes) {
 		return EnsembleSizes[size], nil
 	}
 	return 0, errors.New("%v is not a valid EnsembleSize")
+}
+
+func EnsembleInt(size EnsembleSize) int {
+	return int(size)
 }
 
 func EnsembleString(i int) string {
@@ -59,125 +63,111 @@ func EnsembleString(i int) string {
 	return ensembleStrings[i]
 }
 
-type song struct {
-	storageID      int
-	title          string
-	artist         string
-	ensembleSize   EnsembleSize
-	fileCode       string
-	file           []byte
-	checksum       string
-	rating         []Rating
-	genre          []Genre
-	uploader       *user.User
-	comments       []contract.CommentInterface
+type Song struct {
+	StorageID      int
+	Title          string
+	Artist         string
+	EnsembleSize   EnsembleSize
+	FileCode       string
+	File           []byte
+	Checksum       string
+	Rating         []Rating
+	Genre          []Genre
+	Uploader       *user.User
+	Comments       []contract.CommentInterface
 	status         Status
 	statusMessage  string
-	lockTs         time.Time
-	songProcessor  contract.SongProcessorInterface
-	filesystem     contract.FileSystemInterface
+	LockTs         time.Time
+	SongProcessor  contract.SongProcessorInterface
+	Filesystem     contract.FileSystemInterface
 	Date           date.Date
-	songRepository contract.SongRepositoryInterface
+	SongRepository contract.SongRepositoryInterface
 }
 
-func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) contract.SongInterface {
-	return &song{
-		songProcessor: songProcessor,
-		filesystem:    filesystem,
+func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) *Song {
+	return &Song{
+		SongProcessor: songProcessor,
+		Filesystem:    filesystem,
 	}
 }
 
-func NewSong(title string, artist string, ensembleSize EnsembleSize, genre []Genre, comments []contract.CommentInterface, file []byte, uploader user.User, songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) (contract.SongInterface, error) {
-	song := &song{}
-	err := song.SetTitle(title)
-	if err != nil {
-		return nil, err
-	}
-	err = song.SetArtist(artist)
-	if err != nil {
-		return nil, err
-	}
-	song.SetEnsembleSize(ensembleSize)
-	song.SetGenre(genre)
-	song.SetComments(comments)
-	song.SetFile(file)
-	song.SetUploader(&uploader)
-	song.SetStatus(Pending)
-	song.SetSongProcessor(songProcessor)
-	song.SetFileSystem(filesystem)
-	song.GenerateFileCode()
-	err = song.songProcessor.WriteUnprocessedSong(song)
-	return song, err
-}
-
-func FromNewSongDTO(newSongDto dto.NewSong, songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface) (contract.SongInterface, error) {
-	song := song{
-		title:         newSongDto.Title,
-		artist:        newSongDto.Artist,
+func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface) (*Song, error) {
+	song := Song{
+		Title:         newSongDto.Title,
+		Artist:        newSongDto.Artist,
 		status:        Pending,
-		statusMessage: "Pending song processing.",
+		statusMessage: "Pending Song processing.",
 	}
-	song.songRepository = songRepository
-	song.file = newSongDto.File
-	song.ComputeChecksum()
-	duplicatedEntry, err := songRepository.FindByChecksum(song.checksum)
-	if duplicatedEntry.ID != 0 {
-		return &song, errors.New(fmt.Sprintf("song already exists under id `%v`", duplicatedEntry.ID))
-	}
-	ensSize, err := GetEnsembleSize(newSongDto.EnsembleSize)
+	song.SongRepository = songRepository
+	song.File = newSongDto.File
+	err := song.ComputeChecksum()
 	if err != nil {
 		return &song, err
 	}
-	song.ensembleSize = ensSize
+	duplicatedEntry, err := songRepository.FindByChecksum(song.Checksum)
+	if duplicatedEntry.ID != 0 {
+		return &song, errors.New(fmt.Sprintf("Song already exists under id `%v`", duplicatedEntry.ID))
+	}
+	ensSize, err := GetEnsembleSizeFromInt(newSongDto.EnsembleSize)
+	if err != nil {
+		return &song, err
+	}
+	song.EnsembleSize = ensSize
 	genresDTO, err := genreRepository.FetchByIDs(newSongDto.Genre)
 	if err != nil {
 		return &song, errors.New(fmt.Sprintf("one of the genres might not be valid. Error %s", err))
 	}
-	if userObj, ok := newSongDto.User.(*user.User); ok {
-		song.uploader = userObj
-	} else {
-		return &song, errors.New("song uploader is not of the correct type")
+	song.Uploader, err = user.FromSession(newSongDto.User)
+	if err != nil {
+		return &song, errors.New("Song uploader is not of the correct type")
 	}
-	song.genre = FromGenresDatabaseDTO(genresDTO)
-	song.songProcessor = songProcessor
+	//songUploader := newSongDto.User
+	//if userObj, ok := songUploader.(*user.User); ok {
+	//	song.Uploader = userObj
+	//} else {
+	//	return &song, errors.New("Song uploader is not of the correct type")
+	//}
+	song.Genre = FromGenresDatabaseDTO(genresDTO)
+	song.SongProcessor = songProcessor
 	song.GenerateFileCode()
-	err = song.songProcessor.WriteUnprocessedSong(&song)
+	err = song.SongProcessor.WriteUnprocessedSong(song.FileCode, song.File)
 	return &song, nil
 }
 
-func (s *song) ToDatabaseSongDTO() dto.DatabaseSong {
+func (s *Song) ToDatabaseSongDTO() dto.DatabaseSong {
 	return dto.DatabaseSong{
-		ID:            s.storageID,
-		Title:         s.title,
-		Artist:        s.artist,
-		EnsembleSize:  int(s.ensembleSize),
-		FileCode:      s.fileCode,
-		UploaderID:    s.uploader.StorageID,
+		ID:            s.StorageID,
+		Title:         s.Title,
+		Artist:        s.Artist,
+		EnsembleSize:  int(s.EnsembleSize),
+		FileCode:      s.FileCode,
+		UploaderID:    s.Uploader.StorageID,
 		Status:        int(s.status),
 		StatusMessage: &s.statusMessage,
-		Checksum:      s.checksum,
-		LockExpireTS:  &s.lockTs,
+		Checksum:      s.Checksum,
+		LockExpireTS:  &s.LockTs,
 		CreatedAt:     time.Time{},
 		UpdatedAt:     time.Time{},
 	}
 }
 
-func (s *song) EnsembleString() string {
+func (s *Song) EnsembleString() string {
 	ensembleStrings := [...]string{"Solo", "Duet", "Trio", "Quartet", "Quintet", "Sextet", "Septet", "Octet"}
-	return ensembleStrings[s.ensembleSize]
+	return ensembleStrings[s.EnsembleSize]
 }
 
-func (s *song) ComputeChecksum() {
-	if s.file == nil {
-		errors.New("no files to compute checksum")
+func (s *Song) ComputeChecksum() error {
+	if s.File == nil {
+		return errors.New("no files to compute checksum")
 	}
 	hash := sha256.New()
-	hash.Write(s.file)
+	hash.Write(s.File)
 	hashBytes := hash.Sum(nil)
-	s.checksum = base64.StdEncoding.EncodeToString(hashBytes)
+	s.Checksum = base64.StdEncoding.EncodeToString(hashBytes)
+	return nil
 }
 
-func (a *song) GetDetailedEnsembleString() map[int]string {
+func (a *Song) GetDetailedEnsembleString() map[int]string {
 	var result = make(map[int]string)
 	for i := range 8 { // don't mind the ide. this is syntax added in golang 1.22. the ide just didn had time to catch up with it.
 		result[i] = EnsembleString(i)
@@ -185,160 +175,94 @@ func (a *song) GetDetailedEnsembleString() map[int]string {
 	return result
 }
 
-func (s *song) StatusString() string {
+func (s *Song) StatusString() string {
 	statusStrings := [...]string{"Pending", "Processing", "Processed", "Failed", "Deleted"}
 	return statusStrings[s.status]
 }
 
-func (s *song) GenerateFileCode() {
+func (s *Song) GenerateFileCode() {
 	newUUID := uuid.New()
-	s.fileCode = newUUID.String()
+	s.FileCode = newUUID.String()
 }
 
-func (s *song) AddComment(c contract.CommentInterface) {
-	s.comments = append(s.comments, c)
+func (s *Song) AddComment(c contract.CommentInterface) {
+	s.Comments = append(s.Comments, c)
 }
 
-func (s *song) RemoveComment(c contract.CommentInterface) {
-	for i, comment := range s.comments {
+func (s *Song) RemoveComment(c contract.CommentInterface) {
+	for i, comment := range s.Comments {
 		if comment.GetStorageID() == c.GetStorageID() {
-			s.comments = append(s.comments[:i], s.comments[i+1:]...)
+			s.Comments = append(s.Comments[:i], s.Comments[i+1:]...)
 			break
 		}
 	}
 }
 
-func (s *song) GetAverageRating() float64 {
+func (s *Song) GetAverageRating() float64 {
 	total := 0
-	for _, rating := range s.rating {
-		total += rating.GetRanking()
+	for _, rating := range s.Rating {
+		total += rating.rating
 	}
 	if total == 0 {
 		return 0
 	}
-	average := float64(total) / float64(len(s.rating))
+	average := float64(total) / float64(len(s.Rating))
 	return math.Round(average*100) / 100
 }
 
-func (s *song) ChangeStatus(status Status, statusMessage string) {
+func (s *Song) ChangeStatus(status Status, statusMessage string) {
 	s.status = status
 	s.ChangeStatusMessage(statusMessage)
 }
 
-func (s *song) GetStatus() Status {
+func (s *Song) GetStatus() Status {
 	return s.status
 }
 
-func (s *song) ChangeStatusMessage(statusMessage string) {
+func (s *Song) ChangeStatusMessage(statusMessage string) {
 	s.statusMessage = statusMessage
 }
 
-func (s *song) GetStatusMessage() string {
+func (s *Song) GetStatusMessage() string {
 	return s.statusMessage
 }
 
-func (s *song) ProcessSong() error {
-	err := s.songProcessor.ProcessSong(s)
+func (s *Song) ProcessSong() error {
+	s.GenerateFileCode()
+	err := s.SongProcessor.ProcessSong(s.FileCode)
 	if err != nil {
-		msg := fmt.Sprintf("Failed to process song. Reason: %s", err.Error())
+		msg := fmt.Sprintf("Failed to process Song. Reason: %s", err.Error())
 		s.ChangeStatus(Failed, msg)
 		return errors.New(msg)
 	}
 	return nil
 }
 
-func (s *song) GetFileCode() string {
-	return s.fileCode
+func (s *Song) GetStorageID() int {
+	return s.StorageID
 }
 
-func (s *song) GetFile() []byte {
-	return s.file
-}
-
-func (s *song) GetTitle() string {
-	return s.title
-}
-
-func (s *song) GetArtist() string {
-	return s.artist
-}
-
-func (s *song) GetEnsembleSize() EnsembleSize {
-	return s.ensembleSize
-}
-
-func (s *song) GetGenre() []Genre {
-	return s.genre
-}
-
-func (s *song) GetUploader() *user.User {
-	return s.uploader
-}
-
-func (s *song) GetComments() []contract.CommentInterface {
-	return s.comments
-}
-
-func (s *song) GetStorageID() int {
-	return s.storageID
-}
-
-func (s *song) SetTitle(title string) error {
+func (s *Song) SetTitle(title string) error {
 	if title == "" {
 		return errors.New("title cannot be empty")
 	}
-	s.title = title
+	s.Title = title
 	return nil
 }
 
-func (s *song) SetArtist(artist string) error {
+func (s *Song) SetArtist(artist string) error {
 	if artist == "" {
 		return errors.New("artist cannot be empty")
 	}
-	s.artist = artist
+	s.Artist = artist
 	return nil
 }
 
-func (s *song) SetEnsembleSize(ensembleSize EnsembleSize) {
-	s.ensembleSize = ensembleSize
+func (s *Song) RemoveUnprocessedSong() error {
+	s.GenerateFileCode()
+	return s.SongProcessor.RemoveUnprocessedSong(s.FileCode)
 }
 
-func (s *song) SetGenre(genre []Genre) {
-	s.genre = genre
-}
-
-func (s *song) SetComments(comments []contract.CommentInterface) {
-	s.comments = comments
-}
-
-func (s *song) SetFile(file []byte) {
-	s.file = file
-}
-
-func (s *song) SetUploader(uploader *user.User) {
-	s.uploader = uploader
-}
-
-func (s *song) SetStatus(status Status) {
-	s.status = status
-}
-
-func (s *song) SetSongProcessor(songProcessor contract.SongProcessorInterface) {
-	s.songProcessor = songProcessor
-}
-
-func (s *song) SetFileSystem(filesystem contract.FileSystemInterface) {
-	s.filesystem = filesystem
-}
-
-func (s *song) RemoveUnprocessedSong() error {
-	return s.songProcessor.RemoveUnprocessedSong(s)
-}
-
-func (s *song) AddRating(rating Rating) {
-	s.rating = append(s.rating, rating)
-}
-
-func FromSubmittedForm() {
-
+func (s *Song) AddRating(rating Rating) {
+	s.Rating = append(s.Rating, rating)
 }

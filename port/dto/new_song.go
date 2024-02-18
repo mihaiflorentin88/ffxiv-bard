@@ -1,6 +1,6 @@
 package dto
 
-type NewSong struct {
+type NewSongForm struct {
 	Title        string
 	Artist       string
 	EnsembleSize int
@@ -9,8 +9,8 @@ type NewSong struct {
 	User         interface{} // this is type user.User()
 }
 
-func AddNewSong(title string, artist string, ensembleSize int, genre []int, file []byte, user interface{}) NewSong {
-	return NewSong{
+func AddNewSong(title string, artist string, ensembleSize int, genre []int, file []byte, user interface{}) NewSongForm {
+	return NewSongForm{
 		Title:        title,
 		Artist:       artist,
 		EnsembleSize: ensembleSize,

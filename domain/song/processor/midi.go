@@ -2,7 +2,6 @@ package processor
 
 import (
 	"errors"
-	"ffxvi-bard/domain/song"
 	"ffxvi-bard/port/contract"
 	"fmt"
 	"path/filepath"
@@ -30,58 +29,50 @@ func (m MidiProcessor) IsCorrectFormat() bool {
 	return isMidi
 }
 
-func (m MidiProcessor) getUnprocessedFilePath(currentSong contract.SongInterface) string {
-	return filepath.Join(m.UnprocessedPath, currentSong.GetFileCode()+".mid")
+func (m MidiProcessor) getUnprocessedFilePath(songFilename string) string {
+	return filepath.Join(m.UnprocessedPath, songFilename+".mid")
 }
 
-func (m MidiProcessor) getProcessedFilePath(currentSong contract.SongInterface) string {
-	return filepath.Join(m.ProcessedPath, currentSong.GetFileCode()+".mid")
+func (m MidiProcessor) getProcessedFilePath(songFilename string) string {
+	return filepath.Join(m.ProcessedPath, songFilename+".mid")
 }
 
-func (m MidiProcessor) ProcessSong(currentSong contract.SongInterface) error {
-	currentSong.ChangeStatus(song.Processing, "Processing MIDI file")
-	file, err := m.filesystem.ReadFile(m.getUnprocessedFilePath(currentSong))
+func (m MidiProcessor) ProcessSong(songFilename string) error {
+	file, err := m.filesystem.ReadFile(m.getUnprocessedFilePath(songFilename))
 	if err != nil {
 		msg := "Error reading file"
-		currentSong.ChangeStatus(song.Failed, msg)
-		_ = m.RemoveUnprocessedSong(currentSong)
+		_ = m.RemoveUnprocessedSong(songFilename)
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
 	}
 	m.File = file
 	if !m.IsCorrectFormat() {
 		msg := "file is not a MIDI file"
-		currentSong.ChangeStatus(song.Failed, msg)
-		_ = m.RemoveUnprocessedSong(currentSong)
+		_ = m.RemoveUnprocessedSong(songFilename)
 		return errors.New(msg)
 	}
 
-	err = m.filesystem.WriteFile(m.getProcessedFilePath(currentSong), m.File)
+	err = m.filesystem.WriteFile(m.getProcessedFilePath(songFilename), m.File)
 	if err != nil {
 		msg := "Error writing file"
-		currentSong.ChangeStatus(song.Failed, msg)
-		_ = m.RemoveUnprocessedSong(currentSong)
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
 	}
-	currentSong.ChangeStatus(song.Processed, "MIDI file processed")
-	_ = m.RemoveUnprocessedSong(currentSong)
+	_ = m.RemoveUnprocessedSong(songFilename)
 	return nil
 }
 
-func (m MidiProcessor) WriteUnprocessedSong(currentSong contract.SongInterface) error {
-	err := m.filesystem.WriteFile(m.getUnprocessedFilePath(currentSong), currentSong.GetFile())
+func (m MidiProcessor) WriteUnprocessedSong(songFilename string, song []byte) error {
+	err := m.filesystem.WriteFile(m.getUnprocessedFilePath(songFilename), song)
 	if err != nil {
 		msg := "Error writing file"
-		currentSong.ChangeStatus(song.Failed, msg)
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
 	}
 	return nil
 }
 
-func (m MidiProcessor) RemoveUnprocessedSong(currentSong contract.SongInterface) error {
-	err := m.filesystem.RemoveFile(m.getUnprocessedFilePath(currentSong))
+func (m MidiProcessor) RemoveUnprocessedSong(songFilename string) error {
+	err := m.filesystem.RemoveFile(m.getUnprocessedFilePath(songFilename))
 	if err != nil {
 		msg := "Error removing file"
-		currentSong.ChangeStatus(song.Failed, msg)
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
 	}
 	return nil
