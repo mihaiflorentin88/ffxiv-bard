@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type Controller struct {
@@ -41,6 +40,7 @@ func (s *Controller) RenderSongList(c *gin.Context) {
 	}
 	title := c.Query("title")
 	artist := c.Query("artist")
+	sort := c.Query("sort")
 	ensembleSize, err := strconv.Atoi(c.Query("ensembleSize"))
 	if err != nil {
 		ensembleSize = -1
@@ -49,7 +49,7 @@ func (s *Controller) RenderSongList(c *gin.Context) {
 	if err != nil {
 		genre = -1
 	}
-	songListForm, err := s.songListForm.Fetch(strings.ToLower(title), strings.ToLower(artist), ensembleSize, genre, page)
+	songListForm, err := s.songListForm.Fetch(title, artist, ensembleSize, genre, page, sort)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		return

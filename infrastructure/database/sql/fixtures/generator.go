@@ -52,7 +52,9 @@ func generateFixtures(slice interface{}, tableName string) {
 
 		if user, ok := elem.(*dto.DatabaseUser); ok {
 			user.ID = int64(i + 1)
+			name := faker.Name()
 			user.Username = faker.Name() + strconv.Itoa(i)
+			user.Name = &name
 			user.Email = faker.Email() + strconv.Itoa(i)
 		}
 

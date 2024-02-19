@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"math"
-	"strings"
 	"time"
 )
 
@@ -136,8 +135,8 @@ func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRep
 func (s *Song) ToDatabaseSongDTO() dto.DatabaseSong {
 	return dto.DatabaseSong{
 		ID:            s.StorageID,
-		Title:         strings.ToLower(s.Title),
-		Artist:        strings.ToLower(s.Artist),
+		Title:         s.Title,
+		Artist:        s.Artist,
 		EnsembleSize:  int(s.EnsembleSize),
 		FileCode:      s.FileCode,
 		UploaderID:    s.Uploader.StorageID,

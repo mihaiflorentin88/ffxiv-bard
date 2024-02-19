@@ -4,24 +4,48 @@ import (
 	"ffxvi-bard/domain/song"
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
+	"ffxvi-bard/port/helper"
 	"sync"
 )
+
+const (
+	SortTitleAsc   = "title_asc"
+	SortTitleDesc  = "title_desc"
+	SortAddedAsc   = "added_asc"
+	SortAddedDesc  = "added_desc"
+	SortArtistAsc  = "artist_asc"
+	SortArtistDesc = "artist_desc"
+	SortRatingAsc  = "rating_low"
+	SortRatingDesc = "rating_high"
+)
+
+func getSortCriteriaTitle(option string) string {
+	var titles = map[string]string{
+		SortTitleAsc:   "Title (A - Z)",
+		SortTitleDesc:  "Title (Z - A)",
+		SortAddedAsc:   "Date Added (Oldest First)",
+		SortAddedDesc:  "Date Added (Newest First)",
+		SortArtistAsc:  "Artist (A - Z)",
+		SortArtistDesc: "Artist (Z - A)",
+		SortRatingAsc:  "Rating (Lowest First)",
+		SortRatingDesc: "Rating (Highest First)",
+	}
+	return titles[option]
+}
+
+func getSortOptions() map[string]string {
+	sortOptions := make(map[string]string)
+	for _, option := range []string{SortTitleAsc, SortTitleDesc, SortAddedAsc, SortAddedDesc, SortArtistAsc, SortArtistDesc, SortRatingAsc, SortRatingDesc} {
+		sortOptions[option] = getSortCriteriaTitle(option)
+	}
+	return sortOptions
+}
 
 type SongListPagination struct {
 	TotalPages  int
 	CurrentPage int
 	NextPage    int
 	PrevPage    int
-}
-
-type SongListFilter struct {
-	Title              string
-	Artist             string
-	EnsembleSize       int
-	GenreID            int
-	Offset             int
-	Limit              int
-	EnsembleSizeString string
 }
 
 func (p *SongListPagination) PagesSequence() []int {
@@ -37,19 +61,10 @@ func (p *SongListPagination) PagesSequence() []int {
 	if p.CurrentPage < p.TotalPages-1 {
 		pages = append(pages, p.CurrentPage+1)
 	}
-	if p.TotalPages > 1 && !contains(pages, p.TotalPages) {
+	if p.TotalPages > 1 && !helper.Contains(pages, p.TotalPages) {
 		pages = append(pages, p.TotalPages)
 	}
 	return pages
-}
-
-func contains(slice []int, val int) bool {
-	for _, item := range slice {
-		if item == val {
-			return true
-		}
-	}
-	return false
 }
 
 func NewSongListPagination(totalCount, currentPage, limit int) *SongListPagination {
@@ -76,7 +91,18 @@ func NewSongListPagination(totalCount, currentPage, limit int) *SongListPaginati
 	}
 }
 
-func NewSongListFilter(title string, artist string, ensembleSize int, genreID int, offset int, limit int) *SongListFilter {
+type SongListFilter struct {
+	Title              string
+	Artist             string
+	EnsembleSize       int
+	GenreID            int
+	Offset             int
+	Limit              int
+	Sort               string
+	EnsembleSizeString string
+}
+
+func NewSongListFilter(title string, artist string, ensembleSize int, genreID int, offset int, limit int, sort string) *SongListFilter {
 	filter := SongListFilter{
 		Title:        title,
 		Artist:       artist,
@@ -84,6 +110,7 @@ func NewSongListFilter(title string, artist string, ensembleSize int, genreID in
 		GenreID:      genreID,
 		Offset:       offset,
 		Limit:        limit,
+		Sort:         sort,
 	}
 	if ensembleSize != -1 {
 		filter.EnsembleSizeString = song.EnsembleString(ensembleSize)
@@ -94,6 +121,7 @@ func NewSongListFilter(title string, artist string, ensembleSize int, genreID in
 type SongList struct {
 	Songs            *[]dto.SongWithDetails
 	Genres           *[]dto.DatabaseGenre
+	SortOptions      map[string]string
 	EnsembleSize     map[int]string
 	songRepository   contract.SongRepositoryInterface
 	genreRepository  contract.GenreRepositoryInterface
@@ -125,22 +153,23 @@ func (s *SongList) addAlbumImageToSong(song *dto.SongWithDetails) {
 	song.ImageUrl = image.URL
 }
 
-func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genreID int, page int) (*SongList, error) {
+func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genreID int, page int, sort string) (*SongList, error) {
 	var songs []dto.SongWithDetails
 	var totalSongs int
 	var err error
 	var genres []dto.DatabaseGenre
 
-	limit := 12
+	limit := 15
 	offset := (page - 1) * limit
-	s.Filters = NewSongListFilter(songTitle, artist, ensembleSize, genreID, page, limit)
+	s.Filters = NewSongListFilter(songTitle, artist, ensembleSize, genreID, page, limit, sort)
+	s.SortOptions = getSortOptions()
 	var wg sync.WaitGroup
 	errChan := make(chan error, 3)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		songs, err = s.songRepository.FetchForPagination(songTitle, artist, ensembleSize, genreID, limit, offset)
+		songs, err = s.songRepository.FetchForPagination(songTitle, artist, ensembleSize, genreID, sort, limit, offset)
 		if err != nil {
 			errChan <- err
 		}

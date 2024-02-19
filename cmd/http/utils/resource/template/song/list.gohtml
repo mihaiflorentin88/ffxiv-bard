@@ -1,10 +1,10 @@
 {{define "content"}}
-    <!-- left side of the page -->
+    <!-- Left Filter  -->
     <div class="col-md-2">
         <div class="left-filter-block">
             <div class="left-filter-panel">
                 <form action="/song/list" method="get" enctype="multipart/form-data">
-{{/*                    <input type="hidden" id="pageParam" name="page" value="{{.Data.Filters.Offset}}">*/}}
+                    {{/*                    <input type="hidden" id="pageParam" name="page" value="{{.Data.Filters.Offset}}">*/}}
                     <div class="form-group">
                         <input type="text" class="form-control" id="title" name="title" placeholder="Song title"
                                value="{{.Data.Filters.Title}}">
@@ -31,13 +31,28 @@
                             {{ end }}
                         </select>
                     </div>
+                    <div class="form-group mb-2">
+                        <select class="form-control" id="sort" name="sort">
+                            {{if eq .Data.Filters.Sort ""}}
+                                <option value="" disabled selected>Sort by</option>
+                            {{ end }}
+                            {{range $sort_type, $sort_name := .Data.SortOptions}}
+                                <option value="{{$sort_type}}"
+                                        {{if eq $sort_type $.Data.Filters.Sort}}selected{{end}}>{{$sort_name}}</option>
+
+                                {{/*                                <option value="{{$sort_type}}">{{$sort_name}}</option>*/}}
+                                {{/*                                {{if eq .Data.Filters.Sort $sort_type}}selected{{end}}*/}}
+                            {{end}}
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-dark" id="filterBtn">Filter</button>
                 </form>
             </div>
         </div>
     </div>
+    {{/*    <!-- Left Filter END  -->*/}}
 
-    {{/*< ---- middle of the page  ----> */}}
+    {{/*    <!-- Paginator -->*/}}
     <div class="col-md-10">
         <div class="hero-header">
             <div class="header">
@@ -45,7 +60,9 @@
                     <ul class="pagination justify-content-center">
                         <!-- Previous Page Link -->
                         <li class="page-item {{if eq .Data.Pagination.CurrentPage 1}}disabled{{end}}">
-                            <a class="page-link" href="{{if gt .Data.Pagination.CurrentPage 1}}?page={{.Data.Pagination.PrevPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{else}}#{{end}}" aria-label="Previous">
+                            <a class="page-link"
+                               href="{{if gt .Data.Pagination.CurrentPage 1}}?page={{.Data.Pagination.PrevPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{if ne .Data.Filters.Sort ""}}&sort={{.Data.Filters.Sort}}{{end}}{{else}}#{{end}}"
+                               aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
                         </li>
@@ -53,52 +70,55 @@
                         <!-- Page Numbers -->
                         {{range .Data.Pagination.PagesSequence}}
                             <li class="page-item {{if eq . $.Data.Pagination.CurrentPage}}active{{end}}">
-                                <a class="page-link" href="?page={{.}}{{if ne $.Data.Filters.Title ""}}&title={{$.Data.Filters.Title}}{{end}}{{if ne $.Data.Filters.Artist ""}}&artist={{$.Data.Filters.Artist}}{{end}}{{if ne $.Data.Filters.EnsembleSize -1}}&ensembleSize={{$.Data.Filters.EnsembleSize}}{{end}}{{if ne $.Data.Filters.GenreID -1}}&genre={{$.Data.Filters.GenreID}}{{end}}">{{.}}</a>
+                                <a class="page-link"
+                                   href="?page={{.}}{{if ne $.Data.Filters.Title ""}}&title={{$.Data.Filters.Title}}{{end}}{{if ne $.Data.Filters.Artist ""}}&artist={{$.Data.Filters.Artist}}{{end}}{{if ne $.Data.Filters.EnsembleSize -1}}&ensembleSize={{$.Data.Filters.EnsembleSize}}{{end}}{{if ne $.Data.Filters.GenreID -1}}&genre={{$.Data.Filters.GenreID}}{{end}}{{if ne $.Data.Filters.Sort ""}}&sort={{$.Data.Filters.Sort}}{{end}}">{{.}}</a>
                             </li>
                         {{end}}
-
                         <!-- Next Page Link -->
                         <li class="page-item {{if eq .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}disabled{{end}}">
-                            <a class="page-link" href="{{if lt .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}?page={{.Data.Pagination.NextPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{else}}#{{end}}" aria-label="Next">
+                            <a class="page-link"
+                               href="{{if lt .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}?page={{.Data.Pagination.NextPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{if ne .Data.Filters.Sort ""}}&sort={{.Data.Filters.Sort}}{{end}}{{else}}#{{end}}"
+                               aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
                         </li>
                     </ul>
                 </nav>
+                {{/*    <!-- Paginator END  -->*/}}
 
-
+                {{/*    <!-- Cards  -->*/}}
                 <div class="row">
                     {{range $element := .Data.Songs}}
-                        <div class="card">
+                        <a class="card" href="/songs/{{$element.ID}}">
+                            {{/*                            <div class="card">*/}}
                             <div class="card-body">
-                                <div class="card-image-container">
-                                    <img src="{{$element.ImageUrl}}" class="card-image" width="80" height="80"
-                                         alt="Song Image"
-                                         onerror="this.onerror=null; this.src='/_resource/img/lute.jpeg';"/>
-                                    <div class="ratings-comments">
-                                        <div class="rating-container">
-                                            <span class="label">Rating:</span> <span
-                                                    class="value">{{$element.AverageRating}}</span><i
-                                                    class="fa-solid fa-star star-icon"></i>
-                                        </div>
-                                        <span class="label">Comments:</span> <span
-                                                class="value">{{$element.TotalComments}}</span>
-                                    </div>
-                                </div>
-                                <div class="card-text-container">
-                                    <p class="card-text"><span class="label">Artist:</span> <span
-                                                class="value">{{ $element.Artist }}</span></p>
-                                    <p class="card-text"><span class="label">Title:</span> <span
-                                                class="value">{{ $element.Title }}</span></p>
-                                    <p class="card-text"><span class="label">Ensemble size:</span> <span
-                                                class="value">{{ $element.EnsembleSizeString }}</span></p>
-                                    <p class="card-text"><span class="label">Genre:</span> <span
-                                                class="value">{{$element.GenreName}}</span></p>
+                                <h5 class="card-title">{{$element.Title}}</h5>
+                                <p class="card-label">Artist: <span class="text-white">{{$element.Artist}}</span>
+                                <p class="card-label">Title: <span class="text-white">{{$element.Title}}</span>
+                                </p>
+                                <p class="card-label">Ensemble size: <span
+                                            class="text-white">{{$element.EnsembleSizeString}}</span></p>
+                                <p class="card-label">Genre: <span class="text-white">{{$element.GenreName}}</span>
+                                </p>
+                                <p class="card-label">Uploader: <span
+                                            class="text-white">{{$element.UploaderName}}</span></p>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+            <span class="star-icon">
+                <i class="fas fa-star"></i> {{$element.AverageRating}}
+            </span>
+                                    <span class="comment-icon">
+                <i class="fas fa-comment"></i> {{$element.TotalComments}}
+            </span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     {{end}}
+
+
                 </div>
+                {{/*    <!-- Cards END  -->*/}}
             </div>
         </div>
     </div>

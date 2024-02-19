@@ -108,10 +108,10 @@ func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	return &songs, nil
 }
 
-func (s *SongRepository) FetchForPagination(songTitle string, artist string, ensembleSize int, genreID int, limit int, offset int) ([]dto.SongWithDetails, error) {
+func (s *SongRepository) FetchForPagination(songTitle string, artist string, ensembleSize int, genreID int, sort string, limit int, offset int) ([]dto.SongWithDetails, error) {
 	var songs []dto.SongWithDetails
 
-	baseQuery := `
+	query := `
 			SELECT 
 			s.id, 
 			s.title, 
@@ -141,11 +141,11 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 
 	if songTitle != "" {
 		conditions = append(conditions, "s.title LIKE ?")
-		args = append(args, strings.ToLower("%"+songTitle+"%"))
+		args = append(args, "%"+songTitle+"%")
 	}
 	if artist != "" {
 		conditions = append(conditions, "s.artist LIKE ?")
-		args = append(args, strings.ToLower("%"+artist+"%"))
+		args = append(args, "%"+artist+"%")
 	}
 	if ensembleSize != -1 {
 		conditions = append(conditions, "s.ensemble_size = ?")
@@ -155,18 +155,36 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 		conditions = append(conditions, "g.id = ?")
 		args = append(args, genreID)
 	}
-
 	if len(conditions) > 0 {
-		baseQuery += " WHERE " + strings.Join(conditions, " AND ")
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+	query += "GROUP BY s.id "
+
+	switch sort {
+	case "title_asc":
+		query += "ORDER BY s.title ASC "
+	case "title_desc":
+		query += "ORDER BY s.title DESC "
+	case "added_asc":
+		query += "ORDER BY s.created_at ASC "
+	case "added_desc":
+		query += "ORDER BY s.created_at DESC "
+	case "artist_asc":
+		query += "ORDER BY s.artist ASC "
+	case "artist_desc":
+		query += "ORDER BY s.artist DESC "
+	case "rating_high":
+		query += "ORDER BY average_rating DESC "
+	case "rating_low":
+		query += "ORDER BY average_rating ASC "
+	default:
+		query += "ORDER BY s.artist, s.created_at DESC "
 	}
 
-	baseQuery += `
-	ORDER BY s.artist, s.created_at DESC
-    LIMIT ? OFFSET ?
-  `
+	query += " LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
-	rows, err := s.driver.FetchMany(baseQuery, args...)
+	rows, err := s.driver.FetchMany(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,11 +221,11 @@ func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist stri
 
 	if songTitle != "" {
 		conditions = append(conditions, "s.title LIKE ?")
-		args = append(args, strings.ToLower("%"+songTitle+"%"))
+		args = append(args, "%"+songTitle+"%")
 	}
 	if artist != "" {
 		conditions = append(conditions, "s.artist LIKE ?")
-		args = append(args, strings.ToLower("%"+artist+"%"))
+		args = append(args, "%"+artist+"%")
 	}
 	if ensembleSize != -1 {
 		conditions = append(conditions, "s.ensemble_size = ?")

@@ -1,7 +1,5 @@
 package dto
 
-import "strings"
-
 type NewSongForm struct {
 	Title        string
 	Artist       string
@@ -13,8 +11,8 @@ type NewSongForm struct {
 
 func AddNewSong(title string, artist string, ensembleSize int, genre []int, file []byte, user interface{}) NewSongForm {
 	return NewSongForm{
-		Title:        strings.ToLower(title),
-		Artist:       strings.ToLower(artist),
+		Title:        title,
+		Artist:       artist,
 		EnsembleSize: ensembleSize,
 		Genre:        genre,
 		File:         file,
