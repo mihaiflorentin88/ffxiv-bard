@@ -108,9 +108,8 @@ func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	return &songs, nil
 }
 
-func (s *SongRepository) FetchForPagination(songTitle string, artist string, ensembleSize int, genreID int, limit int, offset int) ([]dto.SongWithDetails, int, error) {
+func (s *SongRepository) FetchForPagination(songTitle string, artist string, ensembleSize int, genreID int, limit int, offset int) ([]dto.SongWithDetails, error) {
 	var songs []dto.SongWithDetails
-	var totalCount int
 
 	baseQuery := `
 			SELECT 
@@ -167,10 +166,9 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
   `
 	args = append(args, limit, offset)
 
-	// Execute the query
 	rows, err := s.driver.FetchMany(baseQuery, args...)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	for rows.Next() {
@@ -183,11 +181,16 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, 0, err
+		return nil, err
 	}
+	return songs, nil
+}
 
-	countQuery := `
-    SELECT COUNT(DISTINCT s.id)
+func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist string, ensembleSize int, genreID int) (int, error) {
+	var totalCount int
+	query := `
+    SELECT 
+        COUNT(DISTINCT s.id)
     FROM song s
     LEFT JOIN user u ON s.uploader_id = u.id
     LEFT JOIN song_genre sg ON s.id = sg.song_id
@@ -195,16 +198,35 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
     LEFT JOIN rating r ON s.id = r.song_id
     LEFT JOIN comment c ON s.id = c.song_id
     `
+	var conditions []string
+	var args []interface{}
 
-	// Append the same conditions to the count query
-	if len(conditions) > 0 {
-		countQuery += " WHERE " + strings.Join(conditions, " AND ")
+	if songTitle != "" {
+		conditions = append(conditions, "s.title LIKE ?")
+		args = append(args, strings.ToLower("%"+songTitle+"%"))
+	}
+	if artist != "" {
+		conditions = append(conditions, "s.artist LIKE ?")
+		args = append(args, strings.ToLower("%"+artist+"%"))
+	}
+	if ensembleSize != -1 {
+		conditions = append(conditions, "s.ensemble_size = ?")
+		args = append(args, ensembleSize)
+	}
+	if genreID != -1 {
+		conditions = append(conditions, "g.id = ?")
+		args = append(args, genreID)
 	}
 
-	result, err := s.driver.FetchOne(countQuery, args[:len(args)-2]...)
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	args = append(args)
+	result, err := s.driver.FetchOne(query, args...)
 	result.Scan(&totalCount)
 	if err != nil {
-		return nil, 0, err
+		return 0, err
 	}
-	return songs, totalCount, nil
+	return totalCount, nil
 }

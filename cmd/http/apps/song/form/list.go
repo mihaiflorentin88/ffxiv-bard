@@ -126,33 +126,56 @@ func (s *SongList) addAlbumImageToSong(song *dto.SongWithDetails) {
 }
 
 func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genreID int, page int) (*SongList, error) {
+	var songs []dto.SongWithDetails
+	var totalSongs int
+	var err error
+	var genres []dto.DatabaseGenre
+
 	limit := 12
 	offset := (page - 1) * limit
 	s.Filters = NewSongListFilter(songTitle, artist, ensembleSize, genreID, page, limit)
-	songs, totalSongs, err := s.songRepository.FetchForPagination(songTitle, artist, ensembleSize, genreID, limit, offset)
+	var wg sync.WaitGroup
+	errChan := make(chan error, 3)
 
-	if err != nil {
-		return nil, err
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		songs, err = s.songRepository.FetchForPagination(songTitle, artist, ensembleSize, genreID, limit, offset)
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		totalSongs, err = s.songRepository.FetchTotalSongsForListing(songTitle, artist, ensembleSize, genreID)
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		genres, err = s.genreRepository.FetchAll()
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
+	wg.Wait()
+	close(errChan)
+	for err := range errChan {
+		if err != nil {
+			return s, err
+		}
 	}
 	s.Pagination = NewSongListPagination(totalSongs, page, limit)
-	var wg sync.WaitGroup
-	songsUpdated := make([]dto.SongWithDetails, len(songs))
-
-	for i, x := range songs {
-		wg.Add(1)
-		x.EnsembleSizeString = song.EnsembleString(x.EnsembleSize)
-		go func(index int, goSong dto.SongWithDetails) {
-			defer wg.Done()
-			s.addAlbumImageToSong(&goSong)
-			songsUpdated[index] = goSong
-		}(i, x)
+	for i := range songs {
+		songs[i].EnsembleSizeString = song.EnsembleString(songs[i].EnsembleSize)
 	}
-	wg.Wait()
-	genres, err := s.genreRepository.FetchAll()
-	if err != nil {
-		return nil, err
-	}
-	s.Songs = &songsUpdated
+	s.Songs = &songs
 	s.Genres = &genres
 	return s, nil
 }
