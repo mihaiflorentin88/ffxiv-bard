@@ -112,28 +112,29 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 	var songs []dto.SongWithDetails
 
 	query := `
-			SELECT 
-			s.id, 
-			s.title, 
-			s.artist, 
-			s.ensemble_size, 
-			g.name AS genre_name, 
-			u.name AS uploader_name, 
-			COALESCE(
-				(SELECT ROUND(AVG(r.rating), 2) 
-				 FROM rating r 
-				 WHERE r.song_id = s.id), 
-			0) AS average_rating, 
-			COALESCE(
-				(SELECT COUNT(c.id) 
-				 FROM comment c 
-				 WHERE c.song_id = s.id), 
-			0) AS total_comments
-		FROM 
-			song s
-		LEFT JOIN user u ON s.uploader_id = u.id
-		LEFT JOIN song_genre sg ON s.id = sg.song_id
-		LEFT JOIN genre g ON sg.genre_id = g.id
+			SELECT
+				s.id,
+				s.title,
+				s.artist,
+				s.ensemble_size,
+				u.name AS uploader_name,
+						(SELECT GROUP_CONCAT(g.name)
+						 FROM genre g
+						 LEFT JOIN song_genre sg ON g.id = sg.genre_id
+						 WHERE s.id = sg.song_id) as genre_name,
+				COALESCE(
+						(SELECT ROUND(AVG(r.rating), 2)
+						 FROM rating r
+						 WHERE r.song_id = s.id),
+						0) AS average_rating,
+				COALESCE(
+						(SELECT COUNT(c.id)
+						 FROM comment c
+						 WHERE c.song_id = s.id),
+						0) AS total_comments
+			FROM
+				song s
+			LEFT JOIN user u ON s.uploader_id = u.id
     `
 
 	var conditions []string
@@ -191,7 +192,7 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 
 	for rows.Next() {
 		var song dto.SongWithDetails
-		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.GenreName, &song.UploaderName, &song.AverageRating, &song.TotalComments)
+		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.UploaderName, &song.GenreName, &song.AverageRating, &song.TotalComments)
 		if err != nil {
 			continue
 		}
