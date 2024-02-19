@@ -18,7 +18,7 @@ func NewFixtures(driver contract.DatabaseDriverInterface) Fixture {
 func (f Fixture) GetFixtureFiles(directory string) []string {
 	return []string{
 		"infrastructure/database/sql/fixtures/files/user.yml",
-		"infrastructure/database/sql/fixtures/files/genre.yml",
+		//"infrastructure/database/sql/fixtures/files/genre.yml",
 		"infrastructure/database/sql/fixtures/files/song.yml",
 		"infrastructure/database/sql/fixtures/files/song_genre.yml",
 		"infrastructure/database/sql/fixtures/files/rating.yml",
@@ -27,6 +27,7 @@ func (f Fixture) GetFixtureFiles(directory string) []string {
 }
 
 func (f Fixture) Execute() {
+	log.Println("Executing fixtures...")
 	db := database.Instance
 	fixtureFiles := f.GetFixtureFiles("infrastructure/database/sql/fixtures/files/")
 
@@ -34,4 +35,5 @@ func (f Fixture) Execute() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print("DONE!")
 }

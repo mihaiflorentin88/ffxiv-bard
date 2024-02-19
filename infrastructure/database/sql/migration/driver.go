@@ -63,13 +63,17 @@ func (d *migrationDriver) Execute(commandType string) {
 	}
 
 	if commandType == "up" {
+		log.Println("Executing migrations up...")
 		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 			log.Fatalf("Failed to apply up migrations: %v", err)
 		}
+		log.Print("DONE!")
 	} else if commandType == "down" {
+		log.Println("Executing migrations down...")
 		if err := m.Down(); err != nil && err != migrate.ErrNoChange {
 			log.Fatalf("Failed to apply down migrations: %v", err)
 		}
+		log.Print("DONE!")
 	} else {
 		log.Fatalf("Unsupported command type: %s", commandType)
 	}

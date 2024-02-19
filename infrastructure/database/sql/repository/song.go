@@ -113,14 +113,28 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 	var totalCount int
 
 	baseQuery := `
-    SELECT s.id, s.title, s.artist, s.ensemble_size, g.name AS genre_name, u.name AS uploader_name, 
-           COALESCE(ROUND(AVG(r.rating),2), 0) AS average_rating, COALESCE(COUNT(c.id), 0) AS total_comments
-    FROM song s
-    LEFT JOIN user u ON s.uploader_id = u.id
-    LEFT JOIN song_genre sg ON s.id = sg.song_id
-    LEFT JOIN genre g ON sg.genre_id = g.id
-    LEFT JOIN rating r ON s.id = r.song_id
-    LEFT JOIN comment c ON s.id = c.song_id
+			SELECT 
+			s.id, 
+			s.title, 
+			s.artist, 
+			s.ensemble_size, 
+			g.name AS genre_name, 
+			u.name AS uploader_name, 
+			COALESCE(
+				(SELECT ROUND(AVG(r.rating), 2) 
+				 FROM rating r 
+				 WHERE r.song_id = s.id), 
+			0) AS average_rating, 
+			COALESCE(
+				(SELECT COUNT(c.id) 
+				 FROM comment c 
+				 WHERE c.song_id = s.id), 
+			0) AS total_comments
+		FROM 
+			song s
+		LEFT JOIN user u ON s.uploader_id = u.id
+		LEFT JOIN song_genre sg ON s.id = sg.song_id
+		LEFT JOIN genre g ON sg.genre_id = g.id
     `
 
 	var conditions []string
@@ -148,10 +162,9 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 	}
 
 	baseQuery += `
-    GROUP BY s.id, s.title, s.artist, s.ensemble_size, g.name, u.name
 	ORDER BY s.artist, s.created_at DESC
     LIMIT ? OFFSET ?
-    `
+  `
 	args = append(args, limit, offset)
 
 	// Execute the query
