@@ -12,11 +12,12 @@ var FixturesCMD = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		generate, _ := cmd.Flags().GetBool("generate")
 		execute, _ := cmd.Flags().GetBool("execute")
+		count, _ := cmd.Flags().GetInt("count")
 		if !generate && !execute {
 			panic("Please provide a command type. Supported commands `generate`, `execute`")
 		}
 		if generate {
-			fixtures.GenerateFixtures()
+			fixtures.GenerateFixtures(count)
 		}
 		if execute {
 			databaseDriver := container.GetDatabaseDriver()
@@ -35,6 +36,7 @@ func init() {
 func initFixturesFlags() {
 	FixturesCMD.PersistentFlags().Bool("generate", false, "Generate fixtures")
 	FixturesCMD.PersistentFlags().Bool("execute", false, "Execute fixtures")
+	FixturesCMD.PersistentFlags().Int("count", 100, "The number of fixtures to generate")
 }
 
 func initRequiredFixturesFlags() {

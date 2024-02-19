@@ -1,32 +1,34 @@
 {{define "content"}}
-    {{/*< ---- right side of the page  ----> */}}
+    <!-- left side of the page -->
     <div class="col-md-2">
         <div class="left-filter-block">
             <div class="left-filter-panel">
                 <form action="/song/list" method="get" enctype="multipart/form-data">
-                    <input type="hidden" id="#pageParam" name="page" value="value1">
+{{/*                    <input type="hidden" id="pageParam" name="page" value="{{.Data.Filters.Offset}}">*/}}
                     <div class="form-group">
-                        <input type="text" class="form-control" id="title" name="title" placeholder="Song title">
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Song title"
+                               value="{{.Data.Filters.Title}}">
                     </div>
                     <div class="form-group">
-                        <input type="text" class="form-control" id="artist" name="artist" placeholder="Artist">
+                        <input type="text" class="form-control" id="artist" name="artist" placeholder="Artist"
+                               value="{{.Data.Filters.Artist}}">
                     </div>
                     <div class="form-group">
-                        <select class="form-control" id="ensembleSize" name="ensembleSize">
-                            <option style="color: rgb(128,128,128);" value="" disabled selected>Ensemble size</option>
-                            {{/*                        {{ range $id, $value := .Data.EnsembleSize }}*/}}
-                            {{/*                            <option value={{ $id }}>{{ $value }}</option>*/}}
-                            {{/*                        {{ end }}*/}}
-                            <option value="1">1</option>
+                        <select class="form-control" id="ensembleSize" name="ensembleSize">*/}}
+                            <option style="color: rgb(128,128,128);" value="-1" disabled selected>Ensemble size</option>
+                            <option value="-1">All</option>
+                            {{ range $id, $value := .Data.EnsembleSize }}
+                                <option value={{ $id }}>{{ $value }}</option>
+                            {{ end }}
                         </select>
                     </div>
                     <div class="form-group">
-                        <select class="form-control" id="genre" name="genre">
-                            <option style="color: rgb(128,128,128);" value="" disabled selected>Genre</option>
-                            <option value="1">1</option>
-                            {{/*                        {{range $element := .Data.Genres}}*/}}
-                            {{/*                            <option value="{{$element.ID}}">{{$element.Name}}</option>*/}}
-                            {{/*                        {{ end }}*/}}
+                        <select class="form-control" id="genre" name="genre">*/}}
+                            <option style="color: rgb(128,128,128);" value="-1" disabled selected>Genre</option>
+                            <option value="-1">All</option>
+                            {{range $element := .Data.Genres}}
+                                <option value="{{$element.ID}}">{{$element.Name}}</option>
+                            {{ end }}
                         </select>
                     </div>
                     <button type="submit" class="btn btn-dark" id="filterBtn">Filter</button>
@@ -39,32 +41,63 @@
     <div class="col-md-10">
         <div class="hero-header">
             <div class="header">
-                <nav aria-label="Page navigation example">
+                <nav aria-label="Page navigation">
                     <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link">Previous</a>
+                        <!-- Previous Page Link -->
+                        <li class="page-item {{if eq .Data.Pagination.CurrentPage 1}}disabled{{end}}">
+                            <a class="page-link" href="{{if gt .Data.Pagination.CurrentPage 1}}?page={{.Data.Pagination.PrevPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{else}}#{{end}}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
                         </li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Next</a>
+
+                        <!-- Page Numbers -->
+                        {{range .Data.Pagination.PagesSequence}}
+                            <li class="page-item {{if eq . $.Data.Pagination.CurrentPage}}active{{end}}">
+                                <a class="page-link" href="?page={{.}}{{if ne $.Data.Filters.Title ""}}&title={{$.Data.Filters.Title}}{{end}}{{if ne $.Data.Filters.Artist ""}}&artist={{$.Data.Filters.Artist}}{{end}}{{if ne $.Data.Filters.EnsembleSize -1}}&ensembleSize={{$.Data.Filters.EnsembleSize}}{{end}}{{if ne $.Data.Filters.GenreID -1}}&genre={{$.Data.Filters.GenreID}}{{end}}">{{.}}</a>
+                            </li>
+                        {{end}}
+
+                        <!-- Next Page Link -->
+                        <li class="page-item {{if eq .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}disabled{{end}}">
+                            <a class="page-link" href="{{if lt .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}?page={{.Data.Pagination.NextPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{else}}#{{end}}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
                         </li>
                     </ul>
                 </nav>
 
+
                 <div class="row">
-                    {{range .Data.Songs}}
+                    {{range $element := .Data.Songs}}
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Special title treatment</h5>
-                                <p class="card-text">With supporting text below as a natural lead-in to additional
-                                    content.</p>
-                                <a href="#" class="btn btn-primary">Go somewhere</a>
+                                <div class="card-image-container">
+                                    <img src="{{$element.ImageUrl}}" class="card-image" width="80" height="80"
+                                         alt="Song Image"
+                                         onerror="this.onerror=null; this.src='/_resource/img/lute.jpeg';"/>
+                                    <div class="ratings-comments">
+                                        <div class="rating-container">
+                                            <span class="label">Rating:</span> <span
+                                                    class="value">{{$element.AverageRating}}</span><i
+                                                    class="fa-solid fa-star star-icon"></i>
+                                        </div>
+                                        <span class="label">Comments:</span> <span
+                                                class="value">{{$element.TotalComments}}</span>
+                                    </div>
+                                </div>
+                                <div class="card-text-container">
+                                    <p class="card-text"><span class="label">Artist:</span> <span
+                                                class="value">{{ $element.Artist }}</span></p>
+                                    <p class="card-text"><span class="label">Title:</span> <span
+                                                class="value">{{ $element.Title }}</span></p>
+                                    <p class="card-text"><span class="label">Ensemble size:</span> <span
+                                                class="value">{{ $element.EnsembleSizeString }}</span></p>
+                                    <p class="card-text"><span class="label">Genre:</span> <span
+                                                class="value">{{$element.GenreName}}</span></p>
+                                </div>
                             </div>
                         </div>
                     {{end}}
-
                 </div>
             </div>
         </div>

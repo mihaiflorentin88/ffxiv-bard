@@ -1,6 +1,7 @@
 package container
 
 import (
+	"ffxvi-bard/infrastructure/client/media"
 	database "ffxvi-bard/infrastructure/database/sql"
 	migration "ffxvi-bard/infrastructure/database/sql/migration"
 	repository "ffxvi-bard/infrastructure/database/sql/repository"
@@ -50,4 +51,9 @@ func GetRatingRepository() contract.RatingRepositoryInterface {
 
 func GetCommentRepository() contract.CommentRepositoryInterface {
 	return repository.NewCommentRepository(GetDatabaseDriver())
+}
+
+func GetSpotifyClient() contract.MediaClientInterface {
+	appConfig := GetConfig().Spotify
+	return media.NewSpotifyClient(appConfig)
 }

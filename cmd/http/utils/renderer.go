@@ -94,6 +94,7 @@ func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 	if err != nil {
 		log.Println("Could not render template. Reason: ", err)
 		r.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
+		return
 	}
 }
 

@@ -12,23 +12,20 @@ type NewSongFormView struct {
 	EnsembleSize    map[int]string
 	Genres          []dto.DatabaseGenre
 	genreRepository contract.GenreRepositoryInterface
-	song            *song.Song
 }
 
-func NewAddNewSongFormView(song *song.Song, genreRepository contract.GenreRepositoryInterface) NewSongFormView {
+func NewAddNewSongFormView(genreRepository contract.GenreRepositoryInterface) NewSongFormView {
 	return NewSongFormView{
 		genreRepository: genreRepository,
-		song:            song,
 	}
-
 }
 
-func (f NewSongFormView) GetData() (NewSongFormView, error) {
+func (f NewSongFormView) Fetch() (NewSongFormView, error) {
 	genres, err := f.genreRepository.FetchAll()
 	if err != nil {
 		return f, errors.New(fmt.Sprintf("failed to fetch available genres. Reason: %s", err))
 	}
 	f.Genres = genres
-	f.EnsembleSize = f.song.GetDetailedEnsembleString()
+	f.EnsembleSize = song.GetDetailedEnsembleString()
 	return f, nil
 }

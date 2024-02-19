@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -54,8 +55,12 @@ func GetEnsembleSizeFromInt(size int) (EnsembleSize, error) {
 	return 0, errors.New("%v is not a valid EnsembleSize")
 }
 
-func EnsembleInt(size EnsembleSize) int {
-	return int(size)
+func GetDetailedEnsembleString() map[int]string {
+	var result = make(map[int]string)
+	for i := range 8 { // don't mind the ide. this is syntax added in golang 1.22. the ide just didn had time to catch up with it.
+		result[i] = EnsembleString(i)
+	}
+	return result
 }
 
 func EnsembleString(i int) string {
@@ -121,12 +126,6 @@ func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRep
 	if err != nil {
 		return &song, errors.New("Song uploader is not of the correct type")
 	}
-	//songUploader := newSongDto.User
-	//if userObj, ok := songUploader.(*user.User); ok {
-	//	song.Uploader = userObj
-	//} else {
-	//	return &song, errors.New("Song uploader is not of the correct type")
-	//}
 	song.Genre = FromGenresDatabaseDTO(genresDTO)
 	song.SongProcessor = songProcessor
 	song.GenerateFileCode()
@@ -137,8 +136,8 @@ func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRep
 func (s *Song) ToDatabaseSongDTO() dto.DatabaseSong {
 	return dto.DatabaseSong{
 		ID:            s.StorageID,
-		Title:         s.Title,
-		Artist:        s.Artist,
+		Title:         strings.ToLower(s.Title),
+		Artist:        strings.ToLower(s.Artist),
 		EnsembleSize:  int(s.EnsembleSize),
 		FileCode:      s.FileCode,
 		UploaderID:    s.Uploader.StorageID,
@@ -165,14 +164,6 @@ func (s *Song) ComputeChecksum() error {
 	hashBytes := hash.Sum(nil)
 	s.Checksum = base64.StdEncoding.EncodeToString(hashBytes)
 	return nil
-}
-
-func (a *Song) GetDetailedEnsembleString() map[int]string {
-	var result = make(map[int]string)
-	for i := range 8 { // don't mind the ide. this is syntax added in golang 1.22. the ide just didn had time to catch up with it.
-		result[i] = EnsembleString(i)
-	}
-	return result
 }
 
 func (s *Song) StatusString() string {

@@ -25,3 +25,19 @@ CREATE TRIGGER IF NOT EXISTS update_song_timestamp
 BEGIN
     UPDATE song SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 END;
+
+CREATE TRIGGER make_artist_lowercase_after_insert
+    AFTER INSERT ON song
+    FOR EACH ROW
+    WHEN NEW.artist <> LOWER(NEW.artist)
+BEGIN
+    UPDATE song SET artist = LOWER(NEW.artist) WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER make_artist_lowercase_after_update
+    AFTER UPDATE ON song
+    FOR EACH ROW
+    WHEN NEW.artist <> LOWER(NEW.artist)
+BEGIN
+    UPDATE song SET artist = LOWER(NEW.artist) WHERE id = NEW.id;
+END;

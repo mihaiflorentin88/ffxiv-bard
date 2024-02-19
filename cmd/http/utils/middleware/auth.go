@@ -62,6 +62,9 @@ func (a *AuthMiddleware) UI() gin.HandlerFunc {
 		if !exists && sessionUsername != username {
 			a.user.Username = username
 			err = a.user.HydrateByUsername()
+			if err != nil {
+				c.Redirect(http.StatusTemporaryRedirect, "/auth/login")
+			}
 			c.Set("user", a.user)
 			c.Set("username", a.user.Username)
 		}

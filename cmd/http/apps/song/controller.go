@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type Controller struct {
@@ -33,7 +35,21 @@ func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerIn
 }
 
 func (s *Controller) RenderSongList(c *gin.Context) {
-	songListForm, err := s.songListForm.FetchData()
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		page = 1
+	}
+	title := c.Query("title")
+	artist := c.Query("artist")
+	ensembleSize, err := strconv.Atoi(c.Query("ensembleSize"))
+	if err != nil {
+		ensembleSize = -1
+	}
+	genre, err := strconv.Atoi(c.Query("genre"))
+	if err != nil {
+		genre = -1
+	}
+	songListForm, err := s.songListForm.Fetch(strings.ToLower(title), strings.ToLower(artist), ensembleSize, genre, page)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		return
@@ -49,7 +65,7 @@ func (s *Controller) RenderSongList(c *gin.Context) {
 }
 
 func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
-	newSongForm, err := s.newSongFormView.GetData()
+	newSongForm, err := s.newSongFormView.Fetch()
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		return

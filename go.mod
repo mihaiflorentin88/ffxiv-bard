@@ -9,7 +9,6 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-faker/faker/v4 v4.3.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
-	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/ravener/discord-oauth2 v0.0.0-20230514095040-ae65713199b3

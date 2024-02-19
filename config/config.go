@@ -16,6 +16,7 @@ type Config struct {
 	Database DatabaseConfig `toml:"database"`
 	Song     SongConfig     `toml:"song"`
 	Discord  DiscordConfig  `toml:"discord"`
+	Spotify  SpotifyConfig  `toml:"spotify"`
 }
 
 type DatabaseConfig struct {
@@ -36,6 +37,13 @@ type DiscordConfig struct {
 	RedirectURI  string   `toml:"redirect_uri"`
 	Scopes       []string `toml:"scopes"`
 	JwtSecret    string   `toml:"jwt_secret"`
+}
+
+type SpotifyConfig struct {
+	Url         string `toml:"url"`
+	AccountsUrl string `toml:"accounts_url"`
+	Secret      string `toml:"secret"`
+	ClientID    string `toml:"client_id"`
 }
 
 func (s *SongConfig) ensureFolders() {

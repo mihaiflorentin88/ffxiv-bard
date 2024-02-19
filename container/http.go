@@ -56,9 +56,9 @@ func GetAddSongFormProcessor() form.AddSongFormProcessor {
 }
 
 func GetNewSongListingForm() form.SongList {
-	return form.NewSongList(GetSongRepository(), GetErrorHandler())
+	return form.NewSongList(GetSongRepository(), GetGenreRepository(), GetRatingRepository(), GetSpotifyClient())
 }
 
 func GetNewSongFormView() form.NewSongFormView {
-	return form.NewAddNewSongFormView(GetEmptySong(), GetGenreRepository())
+	return form.NewAddNewSongFormView(GetGenreRepository())
 }

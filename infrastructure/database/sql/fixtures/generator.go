@@ -18,13 +18,14 @@ type FixtureEntry struct {
 	Fields map[string]interface{} `yaml:"fields"`
 }
 
-func GenerateFixtures() {
-	users := make([]dto.DatabaseUser, 100)
-	songs := make([]dto.DatabaseSong, 100)
-	genres := make([]dto.DatabaseGenre, 100)
-	songGenres := make([]dto.DatabaseSongGenre, 100)
-	ratings := make([]dto.DatabaseRating, 100)
-	comments := make([]dto.DatabaseComment, 100)
+func GenerateFixtures(count int) {
+
+	users := make([]dto.DatabaseUser, count)
+	songs := make([]dto.DatabaseSong, count)
+	genres := make([]dto.DatabaseGenre, count)
+	songGenres := make([]dto.DatabaseSongGenre, count)
+	ratings := make([]dto.DatabaseRating, count)
+	comments := make([]dto.DatabaseComment, count)
 
 	generateFixtures(users, "user")
 	generateFixtures(songs, "song")
@@ -35,8 +36,10 @@ func GenerateFixtures() {
 }
 
 func generateFixtures(slice interface{}, tableName string) {
-	for i := 0; i < 100; i++ {
-		elem := reflect.ValueOf(slice).Index(i).Addr().Interface()
+	sliceVal := reflect.ValueOf(slice)
+
+	for i := 0; i < sliceVal.Len(); i++ {
+		elem := sliceVal.Index(i).Addr().Interface()
 
 		if err := faker.FakeData(elem); err != nil {
 			fmt.Printf("Error faking data: %v\n", err)
@@ -44,14 +47,24 @@ func generateFixtures(slice interface{}, tableName string) {
 		}
 
 		if rating, ok := elem.(*dto.DatabaseRating); ok {
-
 			rating.ID = i + 1
-			rating.AuthorID = rand.Intn(100) + 1
-			rating.SongID = rand.Intn(100) + 1
+			rating.AuthorID = rand.Intn(sliceVal.Len()) + 1
+			rating.SongID = rand.Intn(sliceVal.Len()) + 1
+			rating.Rating = rand.Intn(9) + 1
+		}
+		if song, ok := elem.(*dto.DatabaseSong); ok {
+			song.EnsembleSize = rand.Intn(7)
+			song.Status = rand.Intn(4)
+			song.Title = faker.Name()
+			song.Artist = faker.Name()
+		}
 
-			rating.Rating = rand.Intn(10) + 1
+		if user, ok := elem.(*dto.DatabaseUser); ok {
+			user.Username = faker.Name()
+			user.Email = faker.Email()
 		}
 	}
+
 	writeToFile(fmt.Sprintf("infrastructure/database/sql/fixtures/files/%s.yml", tableName), slice, tableName)
 }
 
@@ -111,6 +124,5 @@ func structToFixtureEntry(s interface{}, tableName string) FixtureEntry {
 			entry.Fields[dbTag] = fieldValue
 		}
 	}
-
 	return entry
 }

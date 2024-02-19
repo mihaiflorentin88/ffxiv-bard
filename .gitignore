@@ -62,3 +62,4 @@ gen
 
 config/config.toml
 database.db
+infrastructure/database/sql/fixtures/files/*.yml
