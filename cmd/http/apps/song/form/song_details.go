@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const dateLayout = "Jan 2, 2006 at 3:04pm (MST)"
+const dateLayout = "Jan 2, 2006 at 3:04pm"
 
 type Genre struct {
 	ID   int

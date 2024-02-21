@@ -4,7 +4,7 @@
             <div class="header">
                 <div class="card song-details-card">
                     <div class="card-header">
-                        <h2 class="card-title"><i class="fa fa-music" aria-hidden="true"></i> &nbsp; {{ .Data.Artist }} - {{ .Data.Title }} {{if .Data.CanEdit}}&nbsp; <a href="" data-toggle="tooltip" title="Edit"><i class="fa fa-pencil-square-o" style="font-size: 16px" aria-hidden="true"></i>
+                        <h2 class="card-title"><i class="fa fa-music" aria-hidden="true"></i> &nbsp; {{ .Data.Artist }} - {{ .Data.Title }} {{if eq .Data.CanEdit true}}&nbsp; <a href="" data-toggle="tooltip" title="Edit"><i class="fa fa-pencil-square-o" style="font-size: 16px" aria-hidden="true"></i>
                             </a> {{end}}</h2>
                     </div>
                     <div class="card-body">
@@ -22,7 +22,7 @@
                         <div class="comments">
                             {{ range .Data.Comments }}
                                 <div class="comment-bubble">
-                                    <p class="comment-author">{{ .Author }} says:</p>
+                                    <p class="comment-author"><span class="text-yellow">{{ .Author }}</span> says:</p>
                                     <p class="comment-content">{{ .Content }}</p>
                                     <p class="comment-date">{{ .CreatedAt }}</p>
                                 </div>
