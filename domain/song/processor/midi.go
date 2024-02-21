@@ -31,22 +31,22 @@ func (m MidiProcessor) IsCorrectFormat() bool {
 	return isMidi
 }
 
-func (m MidiProcessor) getUnprocessedFilePath(songFilename string) string {
-	if !strings.HasSuffix(songFilename, "mid") {
-		songFilename = songFilename + "mid"
+func (m MidiProcessor) GetUnprocessedFilePath(songFilename string) string {
+	if !strings.HasSuffix(songFilename, ".mid") {
+		songFilename = songFilename + ".mid"
 	}
 	return filepath.Join(m.UnprocessedPath, songFilename)
 }
 
-func (m MidiProcessor) getProcessedFilePath(songFilename string) string {
-	if !strings.HasSuffix(songFilename, "mid") {
-		songFilename = songFilename + "mid"
+func (m MidiProcessor) GetProcessedFilePath(songFilename string) string {
+	if !strings.HasSuffix(songFilename, ".mid") {
+		songFilename = songFilename + ".mid"
 	}
 	return filepath.Join(m.ProcessedPath, songFilename)
 }
 
 func (m MidiProcessor) ProcessSong(songFilename string) error {
-	file, err := m.filesystem.ReadFile(m.getUnprocessedFilePath(songFilename))
+	file, err := m.filesystem.ReadFile(m.GetUnprocessedFilePath(songFilename))
 	if err != nil {
 		msg := "Error reading file"
 		_ = m.RemoveUnprocessedSong(songFilename)
@@ -59,7 +59,7 @@ func (m MidiProcessor) ProcessSong(songFilename string) error {
 		return errors.New(msg)
 	}
 
-	err = m.filesystem.WriteFile(m.getProcessedFilePath(songFilename), m.File)
+	err = m.filesystem.WriteFile(m.GetProcessedFilePath(songFilename), m.File)
 	if err != nil {
 		msg := "Error writing file"
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
@@ -69,7 +69,7 @@ func (m MidiProcessor) ProcessSong(songFilename string) error {
 }
 
 func (m MidiProcessor) WriteUnprocessedSong(songFilename string, song []byte) error {
-	err := m.filesystem.WriteFile(m.getUnprocessedFilePath(songFilename), song)
+	err := m.filesystem.WriteFile(m.GetUnprocessedFilePath(songFilename), song)
 	if err != nil {
 		msg := "Error writing file"
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
@@ -78,7 +78,7 @@ func (m MidiProcessor) WriteUnprocessedSong(songFilename string, song []byte) er
 }
 
 func (m MidiProcessor) RemoveUnprocessedSong(songFilename string) error {
-	err := m.filesystem.RemoveFile(m.getUnprocessedFilePath(songFilename))
+	err := m.filesystem.RemoveFile(m.GetUnprocessedFilePath(songFilename))
 	if err != nil {
 		msg := "Error removing file"
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
@@ -87,5 +87,5 @@ func (m MidiProcessor) RemoveUnprocessedSong(songFilename string) error {
 }
 
 func (m MidiProcessor) GenerateUniqueFilename() string {
-	return uuid.New().String() + "mid"
+	return uuid.New().String() + ".mid"
 }

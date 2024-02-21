@@ -110,15 +110,50 @@ func (s *Controller) SongDetails(c *gin.Context) {
 	songID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
 	}
 	songDetails, err := s.songDetailsForm.Fetch(songID, c)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
 	}
 	s.Renderer.
 		StartClean().
 		RemoveTemplate("resource/template/base/additional_styles.gohtml").
+		RemoveTemplate("resource/template/base/additional_js.gohtml").
 		AddTemplate("resource/template/song/song_details.gohtml").
 		AddTemplate("resource/template/song/song_details_css.gohtml").
+		AddTemplate("resource/template/song/song_details_js.gohtml").
 		Render(c, songDetails, http.StatusOK)
+}
+
+func (s *Controller) DownloadSong(c *gin.Context) {
+	songID, err := strconv.Atoi(c.Param("id"))
+	c.Header("Content-Type", "audio/midi")
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	disposition := c.DefaultQuery("disposition", "inline")
+
+	copy := *s.Song
+	targetSong := &copy
+	_, err = targetSong.LoadByID(songID)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	if targetSong.GetStatus() != song.Processed {
+		s.ErrorHandler.RenderTemplate(errors.New("cannot download file. the song is still being processed"), http.StatusBadRequest, c)
+		return
+	}
+	filepath := targetSong.GetFilePath()
+	if disposition == "attachment" {
+		c.Header("Content-Disposition",
+			fmt.Sprintf("attachment; filename=[%s]%s_%s.mid",
+				targetSong.EnsembleString(),
+				targetSong.Artist,
+				targetSong.Title))
+	}
+	c.File(filepath)
 }

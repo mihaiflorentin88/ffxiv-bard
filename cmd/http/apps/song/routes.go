@@ -25,4 +25,5 @@ func (r Router) RegisterRoutes(router *gin.Engine) {
 		r.Controller.RenderAddNewSongForm(c)
 	})
 	router.POST("/song", r.Controller.HandleAddNewSong)
+	router.GET("/song/download/:id", r.Controller.DownloadSong)
 }

@@ -274,6 +274,10 @@ func (s *Song) LoadByID(songID int) (*Song, error) {
 	return s, nil
 }
 
+func (s *Song) GetFilePath() string {
+	return s.SongProcessor.GetProcessedFilePath(s.Filename)
+}
+
 func (s *Song) IsCorrectlyInstantiated() error {
 	if s.emptyUser == nil {
 		return errors.New("song.Song was not correctly instantiated")
