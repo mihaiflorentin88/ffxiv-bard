@@ -19,10 +19,12 @@ type Controller struct {
 	addSongFormProcessor form.AddSongFormProcessor
 	songListForm         form.SongList
 	newSongFormView      form.NewSongFormView
+	songDetailsForm      form.SongDetails
 }
 
 func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer,
-	addSongFormProcessor form.AddSongFormProcessor, songListForm form.SongList, newSongFormView form.NewSongFormView) *Controller {
+	addSongFormProcessor form.AddSongFormProcessor, songListForm form.SongList, newSongFormView form.NewSongFormView,
+	songDetailsForm form.SongDetails) *Controller {
 	return &Controller{
 		Song:                 song,
 		ErrorHandler:         errorHandler,
@@ -30,6 +32,7 @@ func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerIn
 		addSongFormProcessor: addSongFormProcessor,
 		songListForm:         songListForm,
 		newSongFormView:      newSongFormView,
+		songDetailsForm:      songDetailsForm,
 	}
 }
 
@@ -95,10 +98,27 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	err = s.addSongFormProcessor.Process(title, artist, ensembleSize, genre, fileHeader, loggedUser)
+	songID, err := s.addSongFormProcessor.Process(title, artist, ensembleSize, genre, fileHeader, loggedUser)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	c.Redirect(http.StatusFound, "/song/add")
+	c.Redirect(http.StatusFound, fmt.Sprintf("/song/%v", songID))
+}
+
+func (s *Controller) SongDetails(c *gin.Context) {
+	songID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+	}
+	songDetails, err := s.songDetailsForm.Fetch(songID, c)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+	}
+	s.Renderer.
+		StartClean().
+		RemoveTemplate("resource/template/base/additional_styles.gohtml").
+		AddTemplate("resource/template/song/song_details.gohtml").
+		AddTemplate("resource/template/song/song_details_css.gohtml").
+		Render(c, songDetails, http.StatusOK)
 }

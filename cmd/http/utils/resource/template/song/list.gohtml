@@ -89,10 +89,10 @@
                 {{/*    <!-- Cards  -->*/}}
                 <div class="row">
                     {{range $element := .Data.Songs}}
-                        <a class="card" href="/songs/{{$element.ID}}">
+                        <a class="card" href="/song/{{$element.ID}}">
                             {{/*                            <div class="card">*/}}
                             <div class="card-body">
-                                <h5 class="card-title">{{$element.Title}}</h5>
+                                <h5 class="card-title"><i class="fa fa-music" aria-hidden="true"></i> &nbsp;{{$element.Title}}</h5>
                                 <p class="card-label">Artist: <span class="text-white">{{$element.Artist}}</span>
                                 <p class="card-label">Title: <span class="text-white">{{$element.Title}}</span>
                                 </p>

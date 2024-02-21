@@ -17,31 +17,32 @@ func NewSongRepository(driver contract.DatabaseDriverInterface) contract.SongRep
 	}
 }
 
-func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) error {
+func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) (int, error) {
 	query := `
 		INSERT INTO song 
-		    (title, artist, ensemble_size, file_code, uploader_id, status, status_message, checksum, created_at, updated_at)
+		    (title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, created_at, updated_at)
 			  VALUES
 		    (?, ?, ?, ?, ?, ?, ?, ?,  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 
-	result, err := s.driver.Execute(query, song.Title, song.Artist, song.EnsembleSize, song.FileCode, song.UploaderID, song.Status, song.StatusMessage, song.Checksum)
+	result, err := s.driver.Execute(query, song.Title, song.Artist, song.EnsembleSize, song.Filename, song.UploaderID, song.Status, song.StatusMessage, song.Checksum)
 	if err != nil {
-		return fmt.Errorf("error inserting new song: %w", err)
+		return 0, fmt.Errorf("error inserting new song: %w", err)
 	}
 
 	songID, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("error getting last inserted song ID: %w", err)
+		return 0, fmt.Errorf("error getting last inserted song ID: %w", err)
 	}
+	song.ID = int(songID)
 
 	for _, genreID := range genreIDs {
 		err = s.insertSongGenre(songID, genreID)
 		if err != nil {
-			return fmt.Errorf("error inserting song-genre relationship: %w", err)
+			return 0, fmt.Errorf("error inserting song-genre relationship: %w", err)
 		}
 	}
 
-	return nil
+	return int(songID), nil
 }
 
 func (s *SongRepository) insertSongGenre(songID int64, genreID int) error {
@@ -56,7 +57,7 @@ func (s *SongRepository) insertSongGenre(songID int64, genreID int) error {
 func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, error) {
 	var songDTO dto.DatabaseSong
 
-	query := `SELECT id, title, artist, ensemble_size, file_code, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
+	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
 			  FROM song
 			  WHERE checksum = ?`
 
@@ -69,7 +70,7 @@ func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, erro
 		&songDTO.Title,
 		&songDTO.Artist,
 		&songDTO.EnsembleSize,
-		&songDTO.FileCode,
+		&songDTO.Filename,
 		&songDTO.UploaderID,
 		&songDTO.Status,
 		&songDTO.StatusMessage,
@@ -85,9 +86,41 @@ func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, erro
 	return songDTO, nil
 }
 
+func (s *SongRepository) FindByID(songID int) (dto.DatabaseSong, error) {
+	var songDTO dto.DatabaseSong
+
+	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
+			  FROM song
+			  WHERE id = ?`
+
+	row, err := s.driver.FetchOne(query, songID)
+	if err != nil {
+		return songDTO, fmt.Errorf("error executing query to find song by id: %w", err)
+	}
+	err = row.Scan(
+		&songDTO.ID,
+		&songDTO.Title,
+		&songDTO.Artist,
+		&songDTO.EnsembleSize,
+		&songDTO.Filename,
+		&songDTO.UploaderID,
+		&songDTO.Status,
+		&songDTO.StatusMessage,
+		&songDTO.Checksum,
+		&songDTO.LockExpireTS,
+		&songDTO.CreatedAt,
+		&songDTO.UpdatedAt,
+	)
+	if err != nil {
+		return dto.DatabaseSong{}, fmt.Errorf("error scanning song by id: %w", err)
+	}
+
+	return songDTO, nil
+}
+
 func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	var songs []dto.DatabaseSong
-	query := `SELECT id, title, artist, ensemble_size, file_code, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
+	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
 			  FROM song`
 
 	rows, err := s.driver.FetchMany(query)
@@ -96,7 +129,7 @@ func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	}
 	for rows.Next() {
 		var song dto.DatabaseSong
-		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.FileCode, &song.UploaderID, &song.Status, &song.StatusMessage, &song.Checksum, &song.LockExpireTS, &song.CreatedAt, &song.UpdatedAt)
+		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.Filename, &song.UploaderID, &song.Status, &song.StatusMessage, &song.Checksum, &song.LockExpireTS, &song.CreatedAt, &song.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}

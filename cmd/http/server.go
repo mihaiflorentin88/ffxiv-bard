@@ -11,9 +11,9 @@ import (
 
 func RegisterRoutes(router *gin.Engine) {
 	container.GetHttpRenderer().RegisterStatic(router)
-	container.GetSongRouter().RegisterRoutes(router)
 	container.GetMainRouter().RegisterRoutes(router)
 	container.GetAuthRouter().RegisterRoutes(router)
+	container.GetSongRouter().RegisterRoutes(router)
 }
 
 func Server(port int, poolSize int) {

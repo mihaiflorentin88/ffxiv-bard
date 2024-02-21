@@ -19,6 +19,7 @@ func NewSongRouter(controller *Controller, JWTMiddleware middleware.AuthMiddlewa
 }
 
 func (r Router) RegisterRoutes(router *gin.Engine) {
+	router.GET("/song/:id", r.Controller.SongDetails)
 	router.GET("/song/list", r.Controller.RenderSongList)
 	router.GET("/song/add", r.JWTMiddleware.UI(), func(c *gin.Context) {
 		r.Controller.RenderAddNewSongForm(c)

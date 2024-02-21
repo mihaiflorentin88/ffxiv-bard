@@ -9,7 +9,6 @@ import (
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
 	"fmt"
-	"github.com/google/uuid"
 	"math"
 	"time"
 )
@@ -72,26 +71,36 @@ type Song struct {
 	Title          string
 	Artist         string
 	EnsembleSize   EnsembleSize
-	FileCode       string
+	Filename       string
 	File           []byte
 	Checksum       string
 	Rating         []Rating
 	Genre          []Genre
 	Uploader       *user.User
-	Comments       []contract.CommentInterface
+	Comments       []Comment
 	status         Status
 	statusMessage  string
-	LockTs         time.Time
+	LockExpireTs   time.Time
 	SongProcessor  contract.SongProcessorInterface
 	Filesystem     contract.FileSystemInterface
 	Date           date.Date
-	SongRepository contract.SongRepositoryInterface
+	songRepository contract.SongRepositoryInterface
+	emptyRating    *Rating
+	emptyComment   *Comment
+	emptyGenre     *Genre
+	emptyUser      *user.User
 }
 
-func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface) *Song {
+func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface, emptyUser *user.User, emptyRating *Rating, emptyComment *Comment, emptyGenre *Genre, songRepository contract.SongRepositoryInterface) *Song {
 	return &Song{
-		SongProcessor: songProcessor,
-		Filesystem:    filesystem,
+		SongProcessor:  songProcessor,
+		Filesystem:     filesystem,
+		Uploader:       emptyUser,
+		emptyRating:    emptyRating,
+		emptyComment:   emptyComment,
+		emptyGenre:     emptyGenre,
+		emptyUser:      emptyUser,
+		songRepository: songRepository,
 	}
 }
 
@@ -102,7 +111,7 @@ func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRep
 		status:        Pending,
 		statusMessage: "Pending Song processing.",
 	}
-	song.SongRepository = songRepository
+	song.songRepository = songRepository
 	song.File = newSongDto.File
 	err := song.ComputeChecksum()
 	if err != nil {
@@ -127,8 +136,8 @@ func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRep
 	}
 	song.Genre = FromGenresDatabaseDTO(genresDTO)
 	song.SongProcessor = songProcessor
-	song.GenerateFileCode()
-	err = song.SongProcessor.WriteUnprocessedSong(song.FileCode, song.File)
+	song.Filename = song.SongProcessor.GenerateUniqueFilename()
+	err = song.SongProcessor.WriteUnprocessedSong(song.Filename, song.File)
 	return &song, nil
 }
 
@@ -138,12 +147,12 @@ func (s *Song) ToDatabaseSongDTO() dto.DatabaseSong {
 		Title:         s.Title,
 		Artist:        s.Artist,
 		EnsembleSize:  int(s.EnsembleSize),
-		FileCode:      s.FileCode,
+		Filename:      s.Filename,
 		UploaderID:    s.Uploader.StorageID,
 		Status:        int(s.status),
-		StatusMessage: &s.statusMessage,
+		StatusMessage: s.statusMessage,
 		Checksum:      s.Checksum,
-		LockExpireTS:  &s.LockTs,
+		LockExpireTS:  s.LockExpireTs,
 		CreatedAt:     time.Time{},
 		UpdatedAt:     time.Time{},
 	}
@@ -170,18 +179,13 @@ func (s *Song) StatusString() string {
 	return statusStrings[s.status]
 }
 
-func (s *Song) GenerateFileCode() {
-	newUUID := uuid.New()
-	s.FileCode = newUUID.String()
-}
-
-func (s *Song) AddComment(c contract.CommentInterface) {
+func (s *Song) AddComment(c Comment) {
 	s.Comments = append(s.Comments, c)
 }
 
-func (s *Song) RemoveComment(c contract.CommentInterface) {
+func (s *Song) RemoveComment(c Comment) {
 	for i, comment := range s.Comments {
-		if comment.GetStorageID() == c.GetStorageID() {
+		if comment.StorageID == c.StorageID {
 			s.Comments = append(s.Comments[:i], s.Comments[i+1:]...)
 			break
 		}
@@ -218,8 +222,10 @@ func (s *Song) GetStatusMessage() string {
 }
 
 func (s *Song) ProcessSong() error {
-	s.GenerateFileCode()
-	err := s.SongProcessor.ProcessSong(s.FileCode)
+	if s.Filename == "" {
+		s.Filename = s.SongProcessor.GenerateUniqueFilename()
+	}
+	err := s.SongProcessor.ProcessSong(s.Filename)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to process Song. Reason: %s", err.Error())
 		s.ChangeStatus(Failed, msg)
@@ -249,10 +255,86 @@ func (s *Song) SetArtist(artist string) error {
 }
 
 func (s *Song) RemoveUnprocessedSong() error {
-	s.GenerateFileCode()
-	return s.SongProcessor.RemoveUnprocessedSong(s.FileCode)
+	return s.SongProcessor.RemoveUnprocessedSong(s.Filename)
 }
 
 func (s *Song) AddRating(rating Rating) {
 	s.Rating = append(s.Rating, rating)
+}
+
+func (s *Song) LoadByID(songID int) (*Song, error) {
+	songDTO, err := s.songRepository.FindByID(songID)
+	if err != nil {
+		return s, errors.New(fmt.Sprintf("failed to find the requested song. Reason %s", err))
+	}
+	_, err = FromDatabaseDTO(s, &songDTO)
+	if err != nil {
+		return s, err
+	}
+	return s, nil
+}
+
+func (s *Song) IsCorrectlyInstantiated() error {
+	if s.emptyUser == nil {
+		return errors.New("song.Song was not correctly instantiated")
+	}
+	if s.emptyGenre == nil {
+		return errors.New("song.Song was not correctly instantiated")
+	}
+	if s.emptyRating == nil {
+		return errors.New("song.Song was not correctly instantiated")
+	}
+
+	if s.emptyComment == nil {
+		return errors.New("song.Song was not correctly instantiated")
+	}
+
+	if s.songRepository == nil {
+		return errors.New("song.Song was not correctly instantiated")
+	}
+	return nil
+}
+
+func FromDatabaseDTO(song *Song, databaseSong *dto.DatabaseSong) (*Song, error) {
+	var err error
+	if err = song.IsCorrectlyInstantiated(); err != nil {
+		return song, err
+	}
+	song.StorageID = databaseSong.ID
+	song.Title = databaseSong.Title
+	song.Artist = databaseSong.Artist
+	song.EnsembleSize, err = GetEnsembleSizeFromInt(databaseSong.EnsembleSize)
+	if err != nil {
+		return song, err
+	}
+	song.Filename = databaseSong.Filename
+	song.Checksum = databaseSong.Checksum
+	ratings, err := song.emptyRating.FetchBySongId(song.StorageID)
+	if err != nil {
+		return song, err
+	}
+	song.Rating = ratings
+	song.Genre, err = song.emptyGenre.FetchBySongID(song.StorageID)
+	if err != nil {
+		return song, err
+	}
+	if song.Uploader == nil || song.Uploader.StorageID == 0 {
+		song.emptyUser.StorageID = databaseSong.UploaderID
+		song.Uploader = song.emptyUser
+	}
+	err = song.Uploader.HydrateByID()
+	if err != nil {
+		return song, err
+	}
+	comments, err := song.emptyComment.FetchBySongID(song.StorageID)
+	if err != nil {
+		return song, err
+	}
+	song.Comments = comments
+	song.status = Status(databaseSong.Status)
+	song.statusMessage = databaseSong.StatusMessage
+	song.LockExpireTs = databaseSong.LockExpireTS
+	song.Date.UpdatedAt = databaseSong.UpdatedAt
+	song.Date.CreatedAt = databaseSong.CreatedAt
+	return song, nil
 }

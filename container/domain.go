@@ -17,13 +17,20 @@ func GetMidiProcessor() contract.SongProcessorInterface {
 }
 
 func GetEmptySong() *song.Song {
-	return song.NewEmptySong(GetMidiProcessor(), GetFileSystem())
+	return song.NewEmptySong(GetMidiProcessor(), GetFileSystem(), GetNewEmptyUser(), GetEmptyRating(), GetEmptyComment(), GetEmptyGenre(), GetSongRepository())
 }
 
-func GetEmptyGenre() song.Genre {
-	return song.NewEmptyGenre(GetGenreRepository())
+func GetEmptyRating() *song.Rating {
+	return song.NewEmptyRating(GetRatingRepository(), GetNewEmptyUser())
 }
 
-func GetEmptyComment() song.Comment {
-	return song.NewEmptyComment(GetCommentRepository())
+func GetEmptyGenre() *song.Genre {
+	genre := song.NewEmptyGenre(GetGenreRepository())
+	return &genre
+}
+
+func GetEmptyComment() *song.Comment {
+	emptyUser := GetNewEmptyUser()
+	comment := song.NewEmptyComment(GetCommentRepository(), *emptyUser)
+	return &comment
 }

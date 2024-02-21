@@ -44,6 +44,9 @@ func (u *User) HydrateByID() error {
 	if u.StorageID == 0 {
 		return errors.New("user has no id assigned")
 	}
+	if u.Repository == nil {
+		return errors.New("user.User was not properly instantiated")
+	}
 	userDto, err := u.Repository.FindById(u.StorageID)
 	if err != nil {
 		return errors.New(fmt.Sprintf("could not load userid %v. Reason: %s ", u.StorageID, err))
@@ -147,10 +150,6 @@ func (u *User) Persist() error {
 		return errors.New(fmt.Sprintf("cannot create new user. Reason: %s", err))
 	}
 	return nil
-}
-
-func (u *User) GetName() string {
-	return u.Name
 }
 
 func (u *User) ToDatabaseUserDTO() dto.DatabaseUser {

@@ -10,13 +10,27 @@ type Genre struct {
 	StorageID       int
 	Name            string
 	Date            date.Date
-	GenreRepository contract.GenreRepositoryInterface
+	genreRepository contract.GenreRepositoryInterface
 }
 
 func NewEmptyGenre(genreRepository contract.GenreRepositoryInterface) Genre {
 	return Genre{
-		GenreRepository: genreRepository,
+		genreRepository: genreRepository,
 	}
+}
+
+func (g *Genre) FetchBySongID(songID int) ([]Genre, error) {
+	var genres []Genre
+	genreDTOs, err := g.genreRepository.FetchBySongID(songID)
+	if err != nil {
+		return genres, err
+	}
+	for _, genreDTO := range *genreDTOs {
+		genre := FromGenreDatabaseDTO(genreDTO)
+		genre.genreRepository = g.genreRepository
+		genres = append(genres, genre)
+	}
+	return genres, nil
 }
 
 func FromGenreDatabaseDTO(genre dto.DatabaseGenre) Genre {
@@ -24,7 +38,6 @@ func FromGenreDatabaseDTO(genre dto.DatabaseGenre) Genre {
 		StorageID: genre.ID,
 		Name:      genre.Name,
 	}
-
 }
 
 func FromGenresDatabaseDTO(genres []dto.DatabaseGenre) []Genre {

@@ -4,16 +4,18 @@ import (
 	"ffxvi-bard/domain/date"
 	"ffxvi-bard/domain/user"
 	"ffxvi-bard/port/contract"
+	"ffxvi-bard/port/dto"
 )
 
 type Comment struct {
-	storageID         int
+	StorageID         int
 	Author            user.User
 	Title             string
 	Content           string
 	Status            bool
 	Date              date.Date
 	commentRepository contract.CommentRepositoryInterface
+	emptyUser         user.User
 }
 
 func NewComment(title string, content string, author user.User, status bool) *Comment {
@@ -25,16 +27,43 @@ func NewComment(title string, content string, author user.User, status bool) *Co
 	}
 }
 
-func NewEmptyComment(commentRepository contract.CommentRepositoryInterface) Comment {
+func NewEmptyComment(commentRepository contract.CommentRepositoryInterface, emptyUser user.User) Comment {
 	return Comment{
 		commentRepository: commentRepository,
+		emptyUser:         emptyUser,
 	}
 }
 
-func (c *Comment) GetStorageID() int {
-	return c.storageID
+func (c *Comment) FetchBySongID(songID int) ([]Comment, error) {
+	var comments []Comment
+	commentDTOs, err := c.commentRepository.FindBySongID(songID)
+	if err != nil {
+		return comments, err
+	}
+	for _, commentDTO := range commentDTOs {
+		comment, err := FromCommentDTO(commentDTO, c.emptyUser)
+		if err != nil {
+			return comments, err
+		}
+		comments = append(comments, comment)
+	}
+	return comments, nil
 }
 
-func (c *Comment) SetStorageID(id int) {
-	c.storageID = id
+func FromCommentDTO(commentDTO dto.DatabaseComment, emptyUser user.User) (Comment, error) {
+	comment := Comment{
+		StorageID: commentDTO.ID,
+		Title:     commentDTO.Title,
+		Content:   commentDTO.Content,
+		Status:    commentDTO.Status,
+	}
+	comment.Date.CreatedAt = commentDTO.CreatedAt
+	comment.Date.UpdatedAt = commentDTO.UpdatedAt
+	emptyUser.StorageID = commentDTO.AuthorID
+	err := emptyUser.HydrateByID()
+	if err != nil {
+		return comment, err
+	}
+	comment.Author = emptyUser
+	return comment, err
 }

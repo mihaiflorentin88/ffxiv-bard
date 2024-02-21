@@ -1,8 +1,10 @@
 package database
 
 import (
+	"errors"
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
+	"fmt"
 )
 
 type RatingRepository struct {
@@ -29,12 +31,10 @@ func (r *RatingRepository) FindAllBySongId(songID int) ([]dto.DatabaseRating, er
 	}
 	for result.Next() {
 		var rating dto.DatabaseRating
-		result.Scan(&rating.ID)
-		result.Scan(&rating.SongID)
-		result.Scan(&rating.AuthorID)
-		result.Scan(&rating.Rating)
-		result.Scan(&rating.CreatedAt)
-		result.Scan(&rating.UpdatedAt)
+		err := result.Scan(&rating.ID, &rating.SongID, &rating.AuthorID, &rating.Rating, &rating.CreatedAt, &rating.UpdatedAt)
+		if err != nil {
+			return ratings, errors.New(fmt.Sprintf("cannot retrieve rating for song id `%v`. Reason %s", songID, err))
+		}
 		ratings = append(ratings, rating)
 	}
 	if err = result.Err(); err != nil {

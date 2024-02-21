@@ -81,7 +81,7 @@ func generateFixtures(slice interface{}, tableName string) {
 
 		if comment, ok := elem.(*dto.DatabaseComment); ok {
 			comment.SongID = i + 1
-			comment.AuthorID = i + 1
+			comment.AuthorID = int64(i + 1)
 		}
 		log.Print("DONE!")
 	}

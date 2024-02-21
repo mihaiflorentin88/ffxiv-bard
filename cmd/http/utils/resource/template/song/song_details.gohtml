@@ -1,0 +1,44 @@
+{{define "content"}}
+    <div class="container mt-5">
+        <div class="hero-header">
+            <div class="header">
+                <div class="card song-details-card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fa fa-music" aria-hidden="true"></i> &nbsp; {{ .Data.Artist }} - {{ .Data.Title }} {{if .Data.CanEdit}}&nbsp; <a href="" data-toggle="tooltip" title="Edit"><i class="fa fa-pencil-square-o" style="font-size: 16px" aria-hidden="true"></i>
+                            </a> {{end}}</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"><span class="text-yellow"><strong>Artist:</strong></span> {{ .Data.Artist }}</p>
+                        <p class="card-text"><span class="text-yellow"><strong>Title:</strong></span> {{ .Data.Title }}</p>
+                        <p class="card-text"><span class="text-yellow"><strong>Ensemble Size:</strong></span> {{ .Data.EnsembleSizeString }}</p>
+                        <p class="card-text"><span class="text-yellow"><strong>Genre:</strong></span> {{ range .Data.Genre }}{{ .Name }}{{ end }}</p>
+                        <p class="card-text"><span class="text-yellow"><strong>Rating:</strong></span> {{ .Data.Rating }} <i class="fa fa-star"></i></p>
+                        <p class="card-text"><span class="text-yellow"><strong>Uploader:</strong></span> {{ .Data.Uploader }}</p>
+                    </div>
+                    <button id="#download" class="btn btn-primary"><i class="fa fa-download" aria-hidden="true"></i>
+                        Download</button>
+                    <div class="comments-section">
+                        <h3 class="comments-title">Comments:</h3>
+                        <div class="comments">
+                            {{ range .Data.Comments }}
+                                <div class="comment-bubble">
+                                    <p class="comment-author">{{ .Author }} says:</p>
+                                    <p class="comment-content">{{ .Content }}</p>
+                                    <p class="comment-date">{{ .CreatedAt }}</p>
+                                </div>
+                            {{ end }}
+                        </div>
+                        <div class="comment-form">
+                            <form action="/song/{{ .Data.ID }}/comment" method="POST">
+                                <div class="form-group">
+                                    <textarea class="form-control" name="comment" maxlength="500" placeholder="Add a comment..."></textarea>
+                                </div>
+                                <button type="submit" id="submitComment" class="btn btn-primary">Submit Comment</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{ end }}

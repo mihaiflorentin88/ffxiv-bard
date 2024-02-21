@@ -4,7 +4,9 @@ import (
 	"errors"
 	"ffxvi-bard/port/contract"
 	"fmt"
+	"github.com/google/uuid"
 	"path/filepath"
+	"strings"
 )
 
 type MidiProcessor struct {
@@ -30,11 +32,17 @@ func (m MidiProcessor) IsCorrectFormat() bool {
 }
 
 func (m MidiProcessor) getUnprocessedFilePath(songFilename string) string {
-	return filepath.Join(m.UnprocessedPath, songFilename+".mid")
+	if !strings.HasSuffix(songFilename, "mid") {
+		songFilename = songFilename + "mid"
+	}
+	return filepath.Join(m.UnprocessedPath, songFilename)
 }
 
 func (m MidiProcessor) getProcessedFilePath(songFilename string) string {
-	return filepath.Join(m.ProcessedPath, songFilename+".mid")
+	if !strings.HasSuffix(songFilename, "mid") {
+		songFilename = songFilename + "mid"
+	}
+	return filepath.Join(m.ProcessedPath, songFilename)
 }
 
 func (m MidiProcessor) ProcessSong(songFilename string) error {
@@ -76,4 +84,8 @@ func (m MidiProcessor) RemoveUnprocessedSong(songFilename string) error {
 		return errors.New(fmt.Sprintf("%s: %s", msg, err.Error()))
 	}
 	return nil
+}
+
+func (m MidiProcessor) GenerateUniqueFilename() string {
+	return uuid.New().String() + "mid"
 }
