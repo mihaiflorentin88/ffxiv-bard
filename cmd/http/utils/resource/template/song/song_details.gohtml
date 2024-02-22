@@ -27,10 +27,12 @@
                         <p class="card-text"><span
                                     class="text-yellow"><strong>Uploader:</strong></span> {{ .Data.Uploader }}</p>
                     </div>
+                    <section id="section3">
                     <midi-player
                             src="/song/download/{{ .Data.ID }}"
-                            sound-font visualizer="#myPianoRollVisualizer">
+                            sound-font visualizer="#section3 midi-visualizer">
                     </midi-player>
+                    </section>
 
                     <button id="#download" onclick="location.href='/song/download/{{ .Data.ID }}?disposition=attachment';" class="btn btn-primary"><i class="fa fa-download" aria-hidden="true"></i>
                         Download
