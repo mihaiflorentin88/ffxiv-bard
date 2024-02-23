@@ -16,7 +16,7 @@ type Controller struct {
 	Song                 *song.Song
 	ErrorHandler         contract.HttpErrorHandlerInterface
 	Renderer             contract.HttpRenderer
-	addSongFormProcessor form.AddSongFormProcessor
+	addSongFormProcessor form.SubmitSongForm
 	songListForm         form.SongList
 	newSongFormView      form.NewSongFormView
 	songDetailsForm      form.SongDetails
@@ -25,7 +25,7 @@ type Controller struct {
 }
 
 func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer,
-	addSongFormProcessor form.AddSongFormProcessor, songListForm form.SongList, newSongFormView form.NewSongFormView,
+	addSongFormProcessor form.SubmitSongForm, songListForm form.SongList, newSongFormView form.NewSongFormView,
 	songDetailsForm form.SongDetails, submitSongRatingForm form.SubmitSongRatingForm, submitCommentForm form.SubmitCommentForm) *Controller {
 	return &Controller{
 		Song:                 song,
@@ -102,7 +102,7 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	songID, err := s.addSongFormProcessor.Process(title, artist, ensembleSize, genre, fileHeader, loggedUser)
+	songID, err := s.addSongFormProcessor.Submit(title, artist, ensembleSize, genre, fileHeader, loggedUser)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
@@ -214,4 +214,40 @@ func (s *Controller) SubmitSongComment(c *gin.Context) {
 		return
 	}
 	c.Redirect(http.StatusFound, fmt.Sprintf("/song/%v", songID))
+}
+
+func (s *Controller) SubmitSongCommentUpdate(c *gin.Context) {
+	var json struct {
+		CommentId int    `json:"commentId"`
+		Content   string `json:"content"`
+	}
+	sessionUser, exists := c.Get("user")
+	if !exists {
+		s.ErrorHandler.RenderTemplate(errors.New("you must be logged in order to rate"), http.StatusBadRequest, c)
+		return
+	}
+	if err := c.BindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	loggedUser, err := user.FromSession(sessionUser)
+	//songID, err := strconv.Atoi(c.Param("songID"))
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(errors.New("the song id has to be an integer"), http.StatusBadRequest, c)
+		return
+	}
+	if err != nil && json.CommentId != 0 {
+		s.ErrorHandler.RenderTemplate(errors.New("the comment id has to be an integer"), http.StatusBadRequest, c)
+		return
+	}
+	if len(json.Content) > 500 {
+		s.ErrorHandler.RenderTemplate(errors.New("your comment cannot have more then 500 characters"), http.StatusBadRequest, c)
+		return
+	}
+	err = s.submitCommentForm.SubmitUpdate(loggedUser, json.Content, json.CommentId)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	//c.Redirect(http.StatusFound, fmt.Sprintf("/song/%v", songID))
 }

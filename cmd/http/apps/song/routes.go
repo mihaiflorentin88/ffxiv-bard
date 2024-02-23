@@ -32,4 +32,7 @@ func (r Router) RegisterRoutes(router *gin.Engine) {
 	router.POST("/song/:songID/comment", r.JWTMiddleware.UI(), func(c *gin.Context) {
 		r.Controller.SubmitSongComment(c)
 	})
+	router.PUT("/song/:songID/comment", r.JWTMiddleware.UI(), func(c *gin.Context) {
+		r.Controller.SubmitSongCommentUpdate(c)
+	})
 }

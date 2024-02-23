@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-type AddSongFormProcessor struct {
+type SubmitSongForm struct {
 	Title           string
 	Artist          string
 	EnsembleSize    int
@@ -21,15 +21,15 @@ type AddSongFormProcessor struct {
 	songProcessor   contract.SongProcessorInterface
 }
 
-func NewSongFormProcessor(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface) AddSongFormProcessor {
-	return AddSongFormProcessor{
+func NewSubmitSongForm(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface) SubmitSongForm {
+	return SubmitSongForm{
 		songRepository:  songRepository,
 		genreRepository: genreRepository,
 		songProcessor:   songProcessor,
 	}
 }
 
-func (s *AddSongFormProcessor) Process(title string, artist string, ensembleSize string, genre []string, fileHeader *multipart.FileHeader, user interface{}) (int, error) {
+func (s *SubmitSongForm) Submit(title string, artist string, ensembleSize string, genre []string, fileHeader *multipart.FileHeader, user interface{}) (int, error) {
 	s.Title = title
 	s.Artist = artist
 	s.User = user

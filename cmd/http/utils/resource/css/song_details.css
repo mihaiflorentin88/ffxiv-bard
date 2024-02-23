@@ -116,7 +116,7 @@ button.btn.btn-primary {
 
 /* Hover and focus styles for better UX */
 textarea.form-control:focus {
-    background: #495057;
+    background: #283434;
     color: #f8f9fa;
     outline: none;
     box-shadow: 0 0 0 0.2rem rgba(73, 80, 87, 0.25);

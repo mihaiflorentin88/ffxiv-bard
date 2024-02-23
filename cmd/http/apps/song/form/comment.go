@@ -24,3 +24,19 @@ func (f SubmitCommentForm) Submit(loggedUser *user.User, songID int, comment str
 	}
 	return nil
 }
+
+func (f SubmitCommentForm) SubmitUpdate(loggedUser *user.User, comment string, commentID int) error {
+	oldComment, err := f.commentRepository.FindByID(commentID)
+	if err != nil {
+		return err
+	}
+	if !loggedUser.IsAdmin && loggedUser.StorageID != oldComment.AuthorID {
+		return errors.New("you do not have permissions to edit this comment")
+	}
+
+	err = f.commentRepository.UpdateComment(commentID, comment)
+	if err != nil {
+		return errors.New(fmt.Sprintf("cannot submit comment. Reason %s", err))
+	}
+	return nil
+}

@@ -61,6 +61,7 @@ func (h *ErrorHandler) RenderTemplate(err error, statusCode int, c *gin.Context)
 		println("error parsing templates from FS: %s", err)
 	}
 	c.Status(statusCode)
+	c.Header("Content-Type", "text/html")
 	err = tmpl.ExecuteTemplate(c.Writer, "base", h)
 	if err != nil {
 		log.Println("Error executing template:", err)

@@ -28,7 +28,7 @@ func GetAuthMiddleware() middleware.AuthMiddleware {
 }
 
 func GetSongController() *song.Controller {
-	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetAddSongFormProcessor(), GetNewSongListingForm(), GetNewSongFormView(), GetSongDetailsForm(), GetSubmitSongRatingForm(), GetSubmitSongCommentForm())
+	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetNewSubmitSongForm(), GetNewSongListingForm(), GetNewSongFormView(), GetSongDetailsForm(), GetSubmitSongRatingForm(), GetSubmitSongCommentForm())
 }
 
 func GetMainController() *maincontroller.Controller {
@@ -51,8 +51,8 @@ func GetAuthRouter() contract.RouterInterface {
 	return auth.NewAuthRouter(getAuthController())
 }
 
-func GetAddSongFormProcessor() form.AddSongFormProcessor {
-	return form.NewSongFormProcessor(GetSongRepository(), GetGenreRepository(), GetMidiProcessor())
+func GetNewSubmitSongForm() form.SubmitSongForm {
+	return form.NewSubmitSongForm(GetSongRepository(), GetGenreRepository(), GetMidiProcessor())
 }
 
 func GetNewSongListingForm() form.SongList {

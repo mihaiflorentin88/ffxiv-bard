@@ -1,4 +1,6 @@
 {{define "content"}}
+    {{ $userRating := .Data.LoggedUserRating }}
+    {{ $songID := .Data.ID }}
     <div class="container mt-5">
         <div class="hero-header">
             <div class="header">
@@ -27,7 +29,6 @@
                             <span class="rating-value">{{ .Data.Rating }}</span>
                             <form action="/song/{{ .Data.ID }}/rating" method="post">
                             <fieldset class="rating">
-                                {{ $userRating := .Data.LoggedUserRating }}
                                 {{range $i := .Data.GetAvailableStars}}
                                     <input type="radio" id="star{{$i}}" name="rating" value="{{$i}}" {{ if eq $userRating $i }}checked{{end}} onclick="this.form.submit()"/>
                                     <label class="star-label" for="star{{$i}}" title="{{$i}} stars"></label>
@@ -54,13 +55,37 @@
                     <div class="comments-section">
                         <h3 class="comments-title">Comments:</h3>
                         <div class="comments">
+{{/*                            {{ range .Data.Comments }}*/}}
+{{/*                                <div class="comment-bubble">*/}}
+{{/*                                    <p class="comment-author"><span class="text-yellow">{{ .Author }}</span> says:*/}}
+{{/*                                        {{if eq .CanEdit true}}*/}}
+{{/*                                            <a href="" data-toggle="tooltip" title="Edit"><i*/}}
+{{/*                                                        class="fa fa-pencil-square-o" style="font-size: 16px" aria-hidden="true"></i></a>*/}}
+{{/*                                        {{end}}*/}}
+{{/*                                    </p>*/}}
+{{/*                                    <p class="comment-content">{{ .Content }}</p>*/}}
+{{/*                                    <p class="comment-date">{{ .CreatedAt }}</p>*/}}
+{{/*                                </div>*/}}
+{{/*                            {{ end }}*/}}
+
                             {{ range .Data.Comments }}
                                 <div class="comment-bubble">
-                                    <p class="comment-author"><span class="text-yellow">{{ .Author }}</span> says:</p>
-                                    <p class="comment-content">{{ .Content }}</p>
-                                    <p class="comment-date">{{ .CreatedAt }}</p>
+                                    <p class="comment-author">
+                                        <span class="text-yellow">{{ .Author }}</span> says:
+                                        {{ if .CanEdit }}
+                                            <a href="#"  data-url="/song/{{$songID}}/comment" class="edit-comment" data-toggle="tooltip" title="Edit" data-comment-id="{{ .StorageID }}">
+                                                <i class="fa fa-pencil-square-o" style="font-size: 16px" aria-hidden="true"></i>
+                                            </a>
+                                        {{ end }}
+                                    </p>
+                                    <div class="comment-content" data-comment-id="{{ .StorageID }}">
+                                        <p>{{ .Content }}</p>
+                                    </div>
+                                    <p class="comment-date">{{ if ne .CreatedAt .UpdatedAt}} Edited at {{.UpdatedAt}}
+                                        {{else}} {{ .CreatedAt }}{{end}}</p>
                                 </div>
                             {{ end }}
+
                         </div>
                         <div class="comment-form">
                             <form action="/song/{{ .Data.ID }}/comment" method="POST">
