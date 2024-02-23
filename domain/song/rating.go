@@ -19,7 +19,7 @@ type Rating struct {
 }
 
 func NewSongRanting(songID int, authorID int, rating int) (*Rating, error) {
-	if rating < 0 || rating > 10 {
+	if rating < 0 || rating > 5 {
 		return nil, errors.New("rating must be between 0 and 10")
 	}
 	return &Rating{SongID: songID, AuthorID: authorID, rating: rating}, nil

@@ -36,6 +36,10 @@
     margin-right: auto;
 }
 
+.card-label {
+    margin-right: 4px;
+}
+
 #download {
     margin-top: 4px;
     background: rgba(73, 80, 87, 0.6);
@@ -165,4 +169,61 @@ button.btn.btn-primary:hover {
 }
 button#submitComment {
     margin-top: 1rem;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Aligns children at the start of the main-axis */
+}
+
+.star-rating {
+    display: flex;
+    align-items: center; /* Aligns items vertically centered */
+    flex-wrap: nowrap; /* Prevents wrapping into multiple lines */
+    margin-bottom: 15px
+}
+
+.rating {
+    border: none; /* Removes fieldset border */
+    margin-left: 1px; /* Spacing between the rating value and the stars */
+    padding: 0; /* Removes padding around the fieldset */
+    flex-direction: row-reverse;
+    justify-content: flex-end
+}
+
+.rating-value {
+    margin-right: 5px; /* Spacing between the rating value and the star icon */
+}
+
+.rating:not(:checked) > input {
+    position:absolute;
+    top:-9999px;
+    clip:rect(0, 0, 0, 0);
+}
+.rating:not(:checked) > label {
+    float:right;
+    width:1em;
+    padding:0 .1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    font-size:150%;
+    line-height:1.2;
+    color:#ddd;
+}
+.rating:not(:checked) > label:before {
+    content:'★ ';
+}
+.rating > input:checked ~ label {
+    color: gold;
+}
+.rating:not(:checked) > label:hover, .rating:not(:checked) > label:hover ~ label {
+    color: gold;
+}
+.rating > input:checked + label:hover, .rating > input:checked + label:hover ~ label, .rating > input:checked ~ label:hover, .rating > input:checked ~ label:hover ~ label, .rating > label:hover ~ input:checked ~ label {
+    color: #ea0;
+}
+.rating > label:active {
+    position:relative;
 }

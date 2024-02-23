@@ -36,14 +36,23 @@ type SongDetails struct {
 	Comments           []Comment
 	Uploader           string
 	Rating             float64
+	LoggedUserRating   int
 	genreRepository    contract.GenreRepositoryInterface
 	commentRepository  *contract.CommentRepositoryInterface
-	ratingRepository   *contract.RatingRepositoryInterface
+	ratingRepository   contract.RatingRepositoryInterface
 	song               *song.Song
 	loggedUser         *user.User
 }
 
-func NewSongDetailsForm(genreRepository contract.GenreRepositoryInterface, commentRepository *contract.CommentRepositoryInterface, ratingRepository *contract.RatingRepositoryInterface, song *song.Song) SongDetails {
+func (s *SongDetails) GetAvailableStars() []int {
+	stars := make([]int, 5)
+	for i := range stars {
+		stars[i] = 5 - i
+	}
+	return stars
+}
+
+func NewSongDetailsForm(genreRepository contract.GenreRepositoryInterface, commentRepository *contract.CommentRepositoryInterface, ratingRepository contract.RatingRepositoryInterface, song *song.Song) SongDetails {
 	return SongDetails{
 		genreRepository:   genreRepository,
 		song:              song,
@@ -88,7 +97,6 @@ func (s *SongDetails) hydrate() {
 		renderedComment := Comment{
 			StorageID: comment.StorageID,
 			Author:    comment.Author.Name,
-			Title:     comment.Title,
 			Status:    comment.Status,
 			Content:   comment.Content,
 		}
@@ -100,6 +108,9 @@ func (s *SongDetails) hydrate() {
 		renderedComment.CreatedAt = comment.Date.CreatedAt.Format(dateLayout)
 		renderedComment.UpdatedAt = comment.Date.UpdatedAt.Format(dateLayout)
 		comments = append(comments, renderedComment)
+	}
+	if s.loggedUser != nil {
+		s.LoggedUserRating, _ = s.ratingRepository.FindByUserAndSong(s.song.StorageID, s.loggedUser.StorageID)
 	}
 	s.Comments = comments
 	s.Rating = s.song.GetAverageRating()

@@ -10,7 +10,6 @@ import (
 type Comment struct {
 	StorageID         int
 	Author            user.User
-	Title             string
 	Content           string
 	Status            bool
 	Date              date.Date
@@ -18,9 +17,8 @@ type Comment struct {
 	emptyUser         user.User
 }
 
-func NewComment(title string, content string, author user.User, status bool) *Comment {
+func NewComment(content string, author user.User, status bool) *Comment {
 	return &Comment{
-		Title:   title,
 		Content: content,
 		Author:  author,
 		Status:  status,
@@ -53,7 +51,6 @@ func (c *Comment) FetchBySongID(songID int) ([]Comment, error) {
 func FromCommentDTO(commentDTO dto.DatabaseComment, emptyUser user.User) (Comment, error) {
 	comment := Comment{
 		StorageID: commentDTO.ID,
-		Title:     commentDTO.Title,
 		Content:   commentDTO.Content,
 		Status:    commentDTO.Status,
 	}

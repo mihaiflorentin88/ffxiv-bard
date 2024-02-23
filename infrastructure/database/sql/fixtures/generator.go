@@ -71,7 +71,7 @@ func generateFixtures(slice interface{}, tableName string) {
 			rating.ID = i + 1
 			rating.AuthorID = i + 1
 			rating.SongID = i + 1
-			rating.Rating = rand.Intn(9) + 1
+			rating.Rating = rand.Intn(4) + 1
 		}
 
 		if songGenre, ok := elem.(*dto.DatabaseSongGenre); ok {

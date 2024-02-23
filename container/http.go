@@ -28,7 +28,7 @@ func GetAuthMiddleware() middleware.AuthMiddleware {
 }
 
 func GetSongController() *song.Controller {
-	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetAddSongFormProcessor(), GetNewSongListingForm(), GetNewSongFormView(), GetSongDetailsForm())
+	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetAddSongFormProcessor(), GetNewSongListingForm(), GetNewSongFormView(), GetSongDetailsForm(), GetSubmitSongRatingForm(), GetSubmitSongCommentForm())
 }
 
 func GetMainController() *maincontroller.Controller {
@@ -65,6 +65,13 @@ func GetNewSongFormView() form.NewSongFormView {
 
 func GetSongDetailsForm() form.SongDetails {
 	commentRepository := GetCommentRepository()
-	ratingRepository := GetRatingRepository()
-	return form.NewSongDetailsForm(GetGenreRepository(), &commentRepository, &ratingRepository, GetEmptySong())
+	return form.NewSongDetailsForm(GetGenreRepository(), &commentRepository, GetRatingRepository(), GetEmptySong())
+}
+
+func GetSubmitSongRatingForm() form.SubmitSongRatingForm {
+	return form.NewSubmitSongRatingForm(GetRatingRepository())
+}
+
+func GetSubmitSongCommentForm() form.SubmitCommentForm {
+	return form.NewSubmitCommentForm(GetCommentRepository())
 }

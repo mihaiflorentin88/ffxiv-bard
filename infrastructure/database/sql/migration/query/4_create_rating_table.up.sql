@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS rating (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
       song_id    INTEGER NOT NULL,
       author_id  INTEGER NOT NULL,
-      rating     INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 10),
+      rating     INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(song_id) REFERENCES song(id) ON DELETE CASCADE,

@@ -12,29 +12,43 @@
                     </div>
                     <div class="card-body">
                         <p class="card-text"><span
-                                    class="text-yellow"><strong>Artist:</strong></span> {{ .Data.Artist }}</p>
-                        <p class="card-text"><span class="text-yellow"><strong>Title:</strong></span> {{ .Data.Title }}
+                                    class="card-label text-yellow"><strong>Artist:</strong></span> {{ .Data.Artist }}</p>
+                        <p class="card-text"><span class="card-label text-yellow"><strong>Title:</strong></span> {{ .Data.Title }}
                         </p>
                         <p class="card-text"><span
-                                    class="text-yellow"><strong>Ensemble Size:</strong></span> {{ .Data.EnsembleSizeString }}
+                                    class="card-label text-yellow"><strong>Ensemble Size:</strong></span> {{ .Data.EnsembleSizeString }}
                         </p>
                         <p class="card-text"><span
-                                    class="text-yellow"><strong>Genre:</strong></span> {{ range .Data.Genre }}{{ .Name }}{{ end }}
+                                    class="card-label text-yellow"><strong>Genre:</strong></span> {{ range .Data.Genre }}{{ .Name }}{{ end }}
                         </p>
-                        <p class="card-text"><span
-                                    class="text-yellow"><strong>Rating:</strong></span> {{ .Data.Rating }} <i
-                                    class="fa fa-star"></i></p>
-                        <p class="card-text"><span
-                                    class="text-yellow"><strong>Uploader:</strong></span> {{ .Data.Uploader }}</p>
+
+                        <div class="card-text star-rating">
+                            <span class="card-label text-yellow"><strong>Rating:</strong></span>
+                            <span class="rating-value">{{ .Data.Rating }}</span>
+                            <form action="/song/{{ .Data.ID }}/rating" method="post">
+                            <fieldset class="rating">
+                                {{ $userRating := .Data.LoggedUserRating }}
+                                {{range $i := .Data.GetAvailableStars}}
+                                    <input type="radio" id="star{{$i}}" name="rating" value="{{$i}}" {{ if eq $userRating $i }}checked{{end}} onclick="this.form.submit()"/>
+                                    <label class="star-label" for="star{{$i}}" title="{{$i}} stars"></label>
+                                {{end}}
+                            </fieldset>
+                            </form>
+                        </div>
+                        <p class="card-text"
+                        ><span
+                                    class="card-label text-yellow"><strong>Uploader:</strong></span> {{ .Data.Uploader }}</p>
                     </div>
                     <section id="section3">
-                    <midi-player
-                            src="/song/download/{{ .Data.ID }}"
-                            sound-font visualizer="#section3 midi-visualizer">
-                    </midi-player>
+                        <midi-player
+                                src="/song/download/{{ .Data.ID }}"
+                                sound-font visualizer="#section3 midi-visualizer">
+                        </midi-player>
                     </section>
 
-                    <button id="#download" onclick="location.href='/song/download/{{ .Data.ID }}?disposition=attachment';" class="btn btn-primary"><i class="fa fa-download" aria-hidden="true"></i>
+                    <button id="#download"
+                            onclick="location.href='/song/download/{{ .Data.ID }}?disposition=attachment';"
+                            class="btn btn-primary"><i class="fa fa-download" aria-hidden="true"></i>
                         Download
                     </button>
                     <div class="comments-section">

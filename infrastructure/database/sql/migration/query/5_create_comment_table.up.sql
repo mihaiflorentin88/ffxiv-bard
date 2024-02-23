@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS comment (
        id         INTEGER PRIMARY KEY AUTOINCREMENT,
        author_id  INTEGER NOT NULL,
        song_id    INTEGER NOT NULL,
-       title      TEXT NOT NULL,
        content    TEXT NOT NULL,
        status     BOOLEAN DEFAULT 0,
        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

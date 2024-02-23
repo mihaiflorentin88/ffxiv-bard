@@ -26,4 +26,10 @@ func (r Router) RegisterRoutes(router *gin.Engine) {
 	})
 	router.POST("/song", r.Controller.HandleAddNewSong)
 	router.GET("/song/download/:id", r.Controller.DownloadSong)
+	router.POST("/song/:songID/rating", r.JWTMiddleware.UI(), func(c *gin.Context) {
+		r.Controller.SubmitSongRating(c)
+	})
+	router.POST("/song/:songID/comment", r.JWTMiddleware.UI(), func(c *gin.Context) {
+		r.Controller.SubmitSongComment(c)
+	})
 }
