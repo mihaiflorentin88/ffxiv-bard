@@ -7,7 +7,7 @@ import (
 	"ffxvi-bard/port/contract"
 )
 
-func GetNewEmptyUser() *user.User {
+func GetEmptyUser() *user.User {
 	return user.NewEmptyUser(GetUserRepository())
 }
 
@@ -17,11 +17,11 @@ func GetMidiProcessor() contract.SongProcessorInterface {
 }
 
 func GetEmptySong() *song.Song {
-	return song.NewEmptySong(GetMidiProcessor(), GetFileSystem(), GetNewEmptyUser(), GetEmptyRating(), GetEmptyComment(), GetEmptyGenre(), GetSongRepository())
+	return song.NewEmptySong(GetMidiProcessor(), GetFileSystem(), GetEmptyUser(), GetEmptyRating(), GetEmptyComment(), GetEmptyGenre(), GetSongRepository())
 }
 
 func GetEmptyRating() *song.Rating {
-	return song.NewEmptyRating(GetRatingRepository(), GetNewEmptyUser())
+	return song.NewEmptyRating(GetRatingRepository(), GetEmptyUser())
 }
 
 func GetEmptyGenre() *song.Genre {
@@ -30,7 +30,7 @@ func GetEmptyGenre() *song.Genre {
 }
 
 func GetEmptyComment() *song.Comment {
-	emptyUser := GetNewEmptyUser()
+	emptyUser := GetEmptyUser()
 	comment := song.NewEmptyComment(GetCommentRepository(), *emptyUser)
 	return &comment
 }

@@ -1,0 +1,50 @@
+{{define "content"}}
+    <div class="hero-header">
+        <div class="header">
+            <div class="container">
+                <h2>Edit song</h2>
+                <form action="/song/{{ .Data.ID }}/edit" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" class="form-control" id="title" value="{{ .Data.Title }}" name="title"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="artist">Artist:</label>
+                        <input type="text" class="form-control" id="artist" value="{{ .Data.Artist }}" name="artist"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ensembleSize">Ensemble size:</label>
+                        <select class="form-control" id="ensembleSize" name="ensembleSize" required>
+                            {{$selectedEnsembleSize := .Data.EnsembleSize}}
+                            {{ range $id, $value := .Data.AllEnsembleSizes }}
+                                <option value={{ $id }} {{if eq $id $selectedEnsembleSize}} selected {{end}}>{{ $value }}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="genre multiple-select-clear-field">Select genres (multiselect):</label>
+                        <select class="form-select" name="genre" id="genre multiple-select-clear-field"
+                                data-placeholder="Choose anything" multiple required>
+                            {{ $selectedGenres := .Data.Genre }}
+                            {{range $element := .Data.AllGenres}}
+                                <option value="{{$element.ID}}"
+                                        {{range $selectedGenre := $selectedGenres }}
+                                            {{if eq $selectedGenre.ID $element.ID}}
+                                                selected
+                                            {{end}}
+                                        {{end}}>
+                                    {{$element.Name}}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-dark" id="filterBtn">Save</button>
+                </form>
+                {{ if eq .Data.CanDelete true }}
+                    <button id="deleteButton" type="button" class="btn btn-danger" data-song-id="{{ .Data.ID }}" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal">Delete</button>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+{{ end }}

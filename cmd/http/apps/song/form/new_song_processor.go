@@ -2,6 +2,7 @@ package form
 
 import (
 	"ffxvi-bard/domain/song"
+	"ffxvi-bard/domain/user"
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
 	"io"
@@ -19,13 +20,21 @@ type SubmitSongForm struct {
 	songRepository  contract.SongRepositoryInterface
 	genreRepository contract.GenreRepositoryInterface
 	songProcessor   contract.SongProcessorInterface
+	emptyUser       *user.User
+	emptyRating     *song.Rating
+	emptyGenre      *song.Genre
+	emptyComment    *song.Comment
 }
 
-func NewSubmitSongForm(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface) SubmitSongForm {
+func NewSubmitSongForm(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface, emptyUser *user.User, emptyGenre *song.Genre, emptyRating *song.Rating, emptyComment *song.Comment) SubmitSongForm {
 	return SubmitSongForm{
 		songRepository:  songRepository,
 		genreRepository: genreRepository,
 		songProcessor:   songProcessor,
+		emptyUser:       emptyUser,
+		emptyRating:     emptyRating,
+		emptyGenre:      emptyGenre,
+		emptyComment:    emptyComment,
 	}
 }
 
@@ -59,7 +68,7 @@ func (s *SubmitSongForm) Submit(title string, artist string, ensembleSize string
 	if err != nil {
 		return 0, err
 	}
-	newSong, err := song.FromNewSongForm(songDTO, s.songRepository, s.genreRepository, s.songProcessor)
+	newSong, err := song.FromNewSongForm(songDTO, s.songRepository, s.genreRepository, s.songProcessor, s.emptyUser, s.emptyRating, s.emptyGenre, s.emptyComment)
 	if err != nil {
 		return 0, err
 	}
@@ -68,5 +77,11 @@ func (s *SubmitSongForm) Submit(title string, artist string, ensembleSize string
 	if err != nil {
 		return 0, err
 	}
-	return songID, nil
+	songDatabaseDto.ID = songID
+	newSong, err = song.FromDatabaseDTO(newSong, &songDatabaseDto)
+	if err != nil {
+		return songID, err
+	}
+	err = newSong.ProcessSong()
+	return songID, err
 }

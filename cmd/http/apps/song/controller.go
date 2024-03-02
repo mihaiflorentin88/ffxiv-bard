@@ -13,7 +13,7 @@ import (
 )
 
 type Controller struct {
-	Song                 *song.Song
+	Song                 song.Song
 	ErrorHandler         contract.HttpErrorHandlerInterface
 	Renderer             contract.HttpRenderer
 	addSongFormProcessor form.SubmitSongForm
@@ -22,13 +22,15 @@ type Controller struct {
 	songDetailsForm      form.SongDetails
 	submitSongRatingForm form.SubmitSongRatingForm
 	submitCommentForm    form.SubmitCommentForm
+	songEditForm         form.SongEditForm
 }
 
 func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer,
 	addSongFormProcessor form.SubmitSongForm, songListForm form.SongList, newSongFormView form.NewSongFormView,
-	songDetailsForm form.SongDetails, submitSongRatingForm form.SubmitSongRatingForm, submitCommentForm form.SubmitCommentForm) *Controller {
+	songDetailsForm form.SongDetails, submitSongRatingForm form.SubmitSongRatingForm, submitCommentForm form.SubmitCommentForm,
+	songEditForm form.SongEditForm) *Controller {
 	return &Controller{
-		Song:                 song,
+		Song:                 *song,
 		ErrorHandler:         errorHandler,
 		Renderer:             renderer,
 		addSongFormProcessor: addSongFormProcessor,
@@ -37,6 +39,7 @@ func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerIn
 		songDetailsForm:      songDetailsForm,
 		submitSongRatingForm: submitSongRatingForm,
 		submitCommentForm:    submitCommentForm,
+		songEditForm:         songEditForm,
 	}
 }
 
@@ -140,7 +143,7 @@ func (s *Controller) DownloadSong(c *gin.Context) {
 	}
 	disposition := c.DefaultQuery("disposition", "inline")
 
-	copy := *s.Song
+	copy := s.Song
 	targetSong := &copy
 	_, err = targetSong.LoadByID(songID)
 	if err != nil {
@@ -169,7 +172,7 @@ func (s *Controller) SubmitSongRating(c *gin.Context) {
 		return
 	}
 	loggedUser, err := user.FromSession(sessionUser)
-	songID, err := strconv.Atoi(c.Param("songID"))
+	songID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(errors.New("the song id has to be an integer"), http.StatusBadRequest, c)
 		return
@@ -194,7 +197,7 @@ func (s *Controller) SubmitSongComment(c *gin.Context) {
 		return
 	}
 	loggedUser, err := user.FromSession(sessionUser)
-	songID, err := strconv.Atoi(c.Param("songID"))
+	songID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(errors.New("the song id has to be an integer"), http.StatusBadRequest, c)
 		return
@@ -249,5 +252,101 @@ func (s *Controller) SubmitSongCommentUpdate(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	//c.Redirect(http.StatusFound, fmt.Sprintf("/song/%v", songID))
+}
+
+func (s *Controller) EditSongView(c *gin.Context) {
+	songID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(errors.New("the song id has to be an integer"), http.StatusBadRequest, c)
+		return
+	}
+	sessionUser, exists := c.Get("user")
+	if !exists {
+		s.ErrorHandler.RenderTemplate(errors.New("you must be logged in order to edit"), http.StatusBadRequest, c)
+		return
+	}
+	loggedUser, err := user.FromSession(sessionUser)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	songEditForm, err := s.songEditForm.Fetch(songID, loggedUser)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	s.Renderer.
+		StartClean().
+		RemoveTemplate("resource/template/base/additional_styles.gohtml").
+		RemoveTemplate("resource/template/base/additional_js.gohtml").
+		AddTemplate("resource/template/song/edit_song.gohtml").
+		AddTemplate("resource/template/song/edit_song_css.gohtml").
+		AddTemplate("resource/template/song/edit_song_js.gohtml").
+		Render(c, songEditForm, http.StatusOK)
+}
+
+func (s *Controller) SubmitEditSong(c *gin.Context) {
+	sessionUser, exists := c.Get("user")
+	if !exists {
+		s.ErrorHandler.RenderTemplate(errors.New("you must be logged in order to edit"), http.StatusBadRequest, c)
+		return
+	}
+	loggedUser, err := user.FromSession(sessionUser)
+	songID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(errors.New("the song id has to be an integer"), http.StatusBadRequest, c)
+		return
+	}
+	title := c.PostForm("title")
+	artist := c.PostForm("artist")
+	ensembleSize, err := strconv.Atoi(c.PostForm("ensembleSize"))
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(errors.New("the ensembleSize has to be an integer"), http.StatusBadRequest, c)
+		return
+	}
+	var genreIDs []int
+	genreStrings := c.PostFormArray("genre")
+	for _, genreStringID := range genreStrings {
+		genreID, err := strconv.Atoi(genreStringID)
+		if err != nil {
+			s.ErrorHandler.RenderTemplate(errors.New("the ensembleSize has to be an integer"), http.StatusBadRequest, c)
+			return
+		}
+		genreIDs = append(genreIDs, genreID)
+	}
+
+	err = s.songEditForm.HandleSubmittedForm(songID, title, artist, ensembleSize, genreIDs, loggedUser)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(errors.New(fmt.Sprintf("failed to update song. Reason: %s", err)), http.StatusBadRequest, c)
+		return
+	}
+	c.Redirect(http.StatusFound, fmt.Sprintf("/song/%v", songID))
+}
+
+func (s *Controller) DeleteSong(c *gin.Context) {
+	sessionUser, exists := c.Get("user")
+	if !exists {
+		s.ErrorHandler.RenderTemplate(errors.New("you must be logged in order to edit"), http.StatusBadRequest, c)
+		return
+	}
+	loggedUser, err := user.FromSession(sessionUser)
+	songID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(errors.New("the song id has to be an integer"), http.StatusBadRequest, c)
+		return
+	}
+	if !loggedUser.IsAdmin {
+		s.ErrorHandler.RenderTemplate(errors.New("cannot perform action. Reason: permission"), http.StatusBadRequest, c)
+		return
+	}
+	currentSong, err := s.Song.LoadByID(songID)
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
+	err = currentSong.Inactivate()
+	if err != nil {
+		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
+		return
+	}
 }

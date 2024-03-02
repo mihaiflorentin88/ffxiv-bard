@@ -54,6 +54,67 @@ func (s *SongRepository) insertSongGenre(songID int64, genreID int) error {
 	return nil
 }
 
+func (s *SongRepository) UpdateSong(song dto.DatabaseSong, newGenreIDs []int) error {
+	db, err := s.driver.GetConnection()
+	if err != nil {
+		return err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec("UPDATE song SET title = ?, artist = ?, ensemble_size = ? WHERE id = ?",
+		song.Title, song.Artist, song.EnsembleSize, song.ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	var currentGenreIDs []int
+	rows, err := tx.Query("SELECT genre_id FROM song_genre WHERE song_id = ?", song.ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			tx.Rollback()
+			return err
+		}
+		currentGenreIDs = append(currentGenreIDs, id)
+	}
+
+	genresToAdd, genresToRemove := diffGenres(currentGenreIDs, newGenreIDs)
+
+	for _, genreID := range genresToRemove {
+		_, err = tx.Exec("DELETE FROM song_genre WHERE song_id = ? AND genre_id = ?", song.ID, genreID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	for _, genreID := range genresToAdd {
+		_, err = tx.Exec("INSERT INTO song_genre (song_id, genre_id) VALUES (?, ?)", song.ID, genreID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func (s *SongRepository) UpdateStatus(songID int, status int, message string) error {
+	query := `UPDATE song SET status = ?, status_message = ? WHERE id = ?`
+	_, err := s.driver.Execute(query, status, message, songID)
+	if err != nil {
+		return fmt.Errorf("error updating song status. Reason: %w", err)
+	}
+	return nil
+}
+
 func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, error) {
 	var songDTO dto.DatabaseSong
 
@@ -121,7 +182,7 @@ func (s *SongRepository) FindByID(songID int) (dto.DatabaseSong, error) {
 func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	var songs []dto.DatabaseSong
 	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
-			  FROM song`
+			  FROM song WHERE  status = 2`
 
 	rows, err := s.driver.FetchMany(query)
 	if err != nil {
@@ -144,32 +205,52 @@ func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 func (s *SongRepository) FetchForPagination(songTitle string, artist string, ensembleSize int, genreID int, sort string, limit int, offset int) ([]dto.SongWithDetails, error) {
 	var songs []dto.SongWithDetails
 
-	query := `
-			SELECT
-				s.id,
-				s.title,
-				s.artist,
-				s.ensemble_size,
-				u.name AS uploader_name,
-						(SELECT GROUP_CONCAT(g.name)
-						 FROM genre g
-						 LEFT JOIN song_genre sg ON g.id = sg.genre_id
-						 WHERE s.id = sg.song_id) as genre_name,
-				COALESCE(
-						(SELECT ROUND(AVG(r.rating), 2)
-						 FROM rating r
-						 WHERE r.song_id = s.id),
-						0) AS average_rating,
-				COALESCE(
-						(SELECT COUNT(c.id)
-						 FROM comment c
-						 WHERE c.song_id = s.id),
-						0) AS total_comments
-			FROM
-				song s
-			LEFT JOIN user u ON s.uploader_id = u.id
-    `
+	//query := `
+	//		SELECT
+	//			s.id,
+	//			s.title,
+	//			s.artist,
+	//			s.ensemble_size,
+	//			u.name AS uploader_name,
+	//					(SELECT GROUP_CONCAT(g.name)
+	//					 FROM genre g
+	//					 LEFT JOIN song_genre sg ON g.id = sg.genre_id
+	//					 WHERE s.id = sg.song_id) as genre_name,
+	//			COALESCE(
+	//					(SELECT ROUND(AVG(r.rating), 2)
+	//					 FROM rating r
+	//					 WHERE r.song_id = s.id),
+	//					0) AS average_rating,
+	//			COALESCE(
+	//					(SELECT COUNT(c.id)
+	//					 FROM comment c
+	//					 WHERE c.song_id = s.id),
+	//					0) AS total_comments
+	//		FROM
+	//			song s
+	//		LEFT JOIN user u ON s.uploader_id = u.id
+	//		WHERE s.status = 2
+	//`
 
+	query := `
+		SELECT
+			s.id,
+			s.title,
+			s.artist,
+			s.ensemble_size,
+			u.name AS uploader_name,
+			GROUP_CONCAT(DISTINCT g.name) AS genre_name,
+			COALESCE(ROUND(AVG(r.rating), 2), 0) AS average_rating,
+			COUNT(DISTINCT c.id) AS total_comments 
+		FROM
+			song s
+		LEFT JOIN user u ON s.uploader_id = u.id
+		LEFT JOIN song_genre sg ON s.id = sg.song_id 
+		LEFT JOIN genre g ON sg.genre_id = g.id 
+		LEFT JOIN rating r ON s.id = r.song_id
+		LEFT JOIN comment c ON s.id = c.song_id
+		WHERE s.status = 2 
+`
 	var conditions []string
 	var args []interface{}
 
@@ -190,7 +271,7 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 		args = append(args, genreID)
 	}
 	if len(conditions) > 0 {
-		query += " WHERE " + strings.Join(conditions, " AND ")
+		query += " AND " + strings.Join(conditions, " AND ")
 	}
 	query += "GROUP BY s.id "
 
@@ -248,7 +329,8 @@ func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist stri
     LEFT JOIN song_genre sg ON s.id = sg.song_id
     LEFT JOIN genre g ON sg.genre_id = g.id
     LEFT JOIN rating r ON s.id = r.song_id
-    LEFT JOIN comment c ON s.id = c.song_id
+    LEFT JOIN comment c ON s.id = c.song_id 
+    WHERE s.status = 2
     `
 	var conditions []string
 	var args []interface{}
@@ -271,7 +353,7 @@ func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist stri
 	}
 
 	if len(conditions) > 0 {
-		query += " WHERE " + strings.Join(conditions, " AND ")
+		query += " AND " + strings.Join(conditions, " AND ")
 	}
 
 	args = append(args)

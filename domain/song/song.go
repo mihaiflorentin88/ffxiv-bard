@@ -104,12 +104,17 @@ func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem cont
 	}
 }
 
-func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface) (*Song, error) {
+func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface,
+	songProcessor contract.SongProcessorInterface, emptyUser *user.User, emptyRating *Rating, emptyGenre *Genre, emptyComment *Comment) (*Song, error) {
 	song := Song{
 		Title:         newSongDto.Title,
 		Artist:        newSongDto.Artist,
 		status:        Pending,
 		statusMessage: "Pending Song processing.",
+		emptyUser:     emptyUser,
+		emptyRating:   emptyRating,
+		emptyComment:  emptyComment,
+		emptyGenre:    emptyGenre,
 	}
 	song.songRepository = songRepository
 	song.File = newSongDto.File
@@ -192,6 +197,12 @@ func (s *Song) RemoveComment(c Comment) {
 	}
 }
 
+func (s *Song) Inactivate() error {
+	s.ChangeStatus(Deleted, "song was deleted")
+	return s.songRepository.UpdateStatus(s.StorageID, int(s.status), s.statusMessage)
+
+}
+
 func (s *Song) GetAverageRating() float64 {
 	total := 0
 	for _, rating := range s.Rating {
@@ -231,7 +242,9 @@ func (s *Song) ProcessSong() error {
 		s.ChangeStatus(Failed, msg)
 		return errors.New(msg)
 	}
-	return nil
+	s.ChangeStatus(Processed, "Success")
+	return s.songRepository.UpdateStatus(s.StorageID, int(s.status), s.statusMessage)
+
 }
 
 func (s *Song) GetStorageID() int {
@@ -297,6 +310,20 @@ func (s *Song) IsCorrectlyInstantiated() error {
 		return errors.New("song.Song was not correctly instantiated")
 	}
 	return nil
+}
+
+func (s *Song) Update() error {
+	songDTO := s.ToDatabaseSongDTO()
+	var genreIDs []int
+	for _, genre := range s.Genre {
+		genreIDs = append(genreIDs, genre.StorageID)
+	}
+	err := s.songRepository.UpdateSong(songDTO, genreIDs)
+	return err
+}
+
+func (s *Song) SetSongRepository(songRepository contract.SongRepositoryInterface) {
+	s.songRepository = songRepository
 }
 
 func FromDatabaseDTO(song *Song, databaseSong *dto.DatabaseSong) (*Song, error) {

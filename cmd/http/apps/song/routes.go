@@ -26,13 +26,22 @@ func (r Router) RegisterRoutes(router *gin.Engine) {
 	})
 	router.POST("/song", r.Controller.HandleAddNewSong)
 	router.GET("/song/download/:id", r.Controller.DownloadSong)
-	router.POST("/song/:songID/rating", r.JWTMiddleware.UI(), func(c *gin.Context) {
+	router.POST("/song/:id/rating", r.JWTMiddleware.UI(), func(c *gin.Context) {
 		r.Controller.SubmitSongRating(c)
 	})
-	router.POST("/song/:songID/comment", r.JWTMiddleware.UI(), func(c *gin.Context) {
+	router.POST("/song/:id/comment", r.JWTMiddleware.UI(), func(c *gin.Context) {
 		r.Controller.SubmitSongComment(c)
 	})
-	router.PUT("/song/:songID/comment", r.JWTMiddleware.UI(), func(c *gin.Context) {
+	router.PUT("/song/:id/comment", r.JWTMiddleware.UI(), func(c *gin.Context) {
 		r.Controller.SubmitSongCommentUpdate(c)
+	})
+	router.GET("/song/:id/edit", r.JWTMiddleware.UI(), func(c *gin.Context) {
+		r.Controller.EditSongView(c)
+	})
+	router.POST("/song/:id/edit", r.JWTMiddleware.UI(), func(c *gin.Context) {
+		r.Controller.SubmitEditSong(c)
+	})
+	router.DELETE("/song/:id", r.JWTMiddleware.UI(), func(c *gin.Context) {
+		r.Controller.DeleteSong(c)
 	})
 }

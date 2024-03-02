@@ -24,11 +24,11 @@ func GetGinRouter() *gin.Engine {
 }
 
 func GetAuthMiddleware() middleware.AuthMiddleware {
-	return middleware.NewJwtMiddleware(GetDiscordAuth(), GetNewEmptyUser())
+	return middleware.NewJwtMiddleware(GetDiscordAuth(), GetEmptyUser())
 }
 
 func GetSongController() *song.Controller {
-	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetNewSubmitSongForm(), GetNewSongListingForm(), GetNewSongFormView(), GetSongDetailsForm(), GetSubmitSongRatingForm(), GetSubmitSongCommentForm())
+	return song.NewSongController(GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetNewSubmitSongForm(), GetNewSongListingForm(), GetNewSongFormView(), GetSongDetailsForm(), GetSubmitSongRatingForm(), GetSubmitSongCommentForm(), GetSongEditViewForm())
 }
 
 func GetMainController() *maincontroller.Controller {
@@ -52,7 +52,7 @@ func GetAuthRouter() contract.RouterInterface {
 }
 
 func GetNewSubmitSongForm() form.SubmitSongForm {
-	return form.NewSubmitSongForm(GetSongRepository(), GetGenreRepository(), GetMidiProcessor())
+	return form.NewSubmitSongForm(GetSongRepository(), GetGenreRepository(), GetMidiProcessor(), GetEmptyUser(), GetEmptyGenre(), GetEmptyRating(), GetEmptyComment())
 }
 
 func GetNewSongListingForm() form.SongList {
@@ -74,4 +74,8 @@ func GetSubmitSongRatingForm() form.SubmitSongRatingForm {
 
 func GetSubmitSongCommentForm() form.SubmitCommentForm {
 	return form.NewSubmitCommentForm(GetCommentRepository())
+}
+
+func GetSongEditViewForm() form.SongEditForm {
+	return form.NewSongEditForm(GetGenreRepository(), GetEmptySong())
 }

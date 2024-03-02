@@ -22,13 +22,13 @@
                         <a class="nav-link dropdown-toggle" href="#" id="userMenuLink" role="button"
                            data-bs-toggle="dropdown" aria-expanded="false">
                             {{ if .User.Name }}
-                                <i class="fa fa-user-circle" aria-hidden="true"></i> {{ .User.Name }} <!-- Display the name -->
+                                <i class="fa fa-user-circle" aria-hidden="true"></i> {{ .User.Name }}
                             {{ else }}
-                                <i class="fa fa-user" aria-hidden="true"></i> {{ .User.Username }} <!-- Display the username -->
+                                <i class="fa fa-user" aria-hidden="true"></i> {{ .User.Username }}
                             {{ end }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuLink">
-                            <li><a class="dropdown-item" href="/user/profile">Profile</a></li>
+{{/*                            <li><a class="dropdown-item" href="/user/profile">Profile</a></li>*/}}
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

@@ -4,6 +4,8 @@ import "ffxvi-bard/port/dto"
 
 type SongRepositoryInterface interface {
 	InsertNewSong(dto dto.DatabaseSong, genresIDs []int) (int, error)
+	UpdateSong(song dto.DatabaseSong, newGenreIDs []int) error
+	UpdateStatus(songID int, status int, message string) error
 	FindByChecksum(checksum string) (dto.DatabaseSong, error)
 	FindByID(songID int) (dto.DatabaseSong, error)
 	FetchAll() (*[]dto.DatabaseSong, error)

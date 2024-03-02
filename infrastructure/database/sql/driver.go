@@ -34,7 +34,7 @@ func NewSqlDriver(cfg *config.DatabaseConfig) (contract.DatabaseDriverInterface,
 	return &sqliteDriver{database: cfg.Database, path: cfg.Path}, nil
 }
 
-func (d *sqliteDriver) getConnection() (*sql.DB, error) {
+func (d *sqliteDriver) GetConnection() (*sql.DB, error) {
 	mu.Lock()
 	defer mu.Unlock()
 	err := Instance.Ping()
@@ -48,7 +48,7 @@ func (d *sqliteDriver) getConnection() (*sql.DB, error) {
 }
 
 func (d *sqliteDriver) Execute(query string, args ...interface{}) (sql.Result, error) {
-	db, err := d.getConnection()
+	db, err := d.GetConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (d *sqliteDriver) Execute(query string, args ...interface{}) (sql.Result, e
 }
 
 func (d *sqliteDriver) FetchOne(query string, args ...interface{}) (*sql.Row, error) {
-	db, err := d.getConnection()
+	db, err := d.GetConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (d *sqliteDriver) FetchOne(query string, args ...interface{}) (*sql.Row, er
 }
 
 func (d *sqliteDriver) FetchMany(query string, args ...interface{}) (*sql.Rows, error) {
-	db, err := d.getConnection()
+	db, err := d.GetConnection()
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,26 @@ type GenreRepository struct {
 	driver contract.DatabaseDriverInterface
 }
 
+func diffGenres(current, new []int) (toAdd, toRemove []int) {
+	currentMap := make(map[int]bool)
+	newMap := make(map[int]bool)
+	for _, id := range current {
+		currentMap[id] = true
+	}
+	for _, id := range new {
+		if !currentMap[id] {
+			toAdd = append(toAdd, id)
+		}
+		newMap[id] = true
+	}
+	for _, id := range current {
+		if !newMap[id] {
+			toRemove = append(toRemove, id)
+		}
+	}
+	return toAdd, toRemove
+}
+
 func NewGenreRepository(driver contract.DatabaseDriverInterface) contract.GenreRepositoryInterface {
 	return &GenreRepository{
 		driver: driver,
