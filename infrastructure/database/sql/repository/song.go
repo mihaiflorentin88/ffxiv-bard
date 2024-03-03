@@ -51,7 +51,7 @@ func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) (i
 }
 
 func (s *SongRepository) insertSongGenre(songID int64, genreID int) error {
-	query := `INSERT IGNORE INTO song_genre (song_id, genre_id) VALUES (?, ?)`
+	query := `INSERT OR IGNORE INTO song_genre (song_id, genre_id) VALUES (?, ?)`
 	_, err := s.driver.Execute(query, songID, genreID)
 	if err != nil {
 		return fmt.Errorf("error inserting into song_genre: %w", err)
