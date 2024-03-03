@@ -7,11 +7,11 @@ import (
 )
 
 type Router struct {
-	Controller    *Controller
+	Controller    Controller
 	JWTMiddleware middleware.AuthMiddleware
 }
 
-func NewSongRouter(controller *Controller, JWTMiddleware middleware.AuthMiddleware) contract.RouterInterface {
+func NewSongRouter(controller Controller, JWTMiddleware middleware.AuthMiddleware) contract.RouterInterface {
 	return &Router{
 		Controller:    controller,
 		JWTMiddleware: JWTMiddleware,

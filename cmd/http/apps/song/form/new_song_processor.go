@@ -20,13 +20,13 @@ type SubmitSongForm struct {
 	songRepository  contract.SongRepositoryInterface
 	genreRepository contract.GenreRepositoryInterface
 	songProcessor   contract.SongProcessorInterface
-	emptyUser       *user.User
-	emptyRating     *song.Rating
-	emptyGenre      *song.Genre
-	emptyComment    *song.Comment
+	emptyUser       user.User
+	emptyRating     song.Rating
+	emptyGenre      song.Genre
+	emptyComment    song.Comment
 }
 
-func NewSubmitSongForm(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface, emptyUser *user.User, emptyGenre *song.Genre, emptyRating *song.Rating, emptyComment *song.Comment) SubmitSongForm {
+func NewSubmitSongForm(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, songProcessor contract.SongProcessorInterface, emptyUser user.User, emptyGenre song.Genre, emptyRating song.Rating, emptyComment song.Comment) SubmitSongForm {
 	return SubmitSongForm{
 		songRepository:  songRepository,
 		genreRepository: genreRepository,
@@ -68,7 +68,7 @@ func (s *SubmitSongForm) Submit(title string, artist string, ensembleSize string
 	if err != nil {
 		return 0, err
 	}
-	newSong, err := song.FromNewSongForm(songDTO, s.songRepository, s.genreRepository, s.songProcessor, s.emptyUser, s.emptyRating, s.emptyGenre, s.emptyComment)
+	newSong, err := song.FromNewSongForm(songDTO, s.songRepository, s.genreRepository, s.songProcessor, &s.emptyUser, &s.emptyRating, &s.emptyGenre, &s.emptyComment)
 	if err != nil {
 		return 0, err
 	}

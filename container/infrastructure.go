@@ -8,13 +8,14 @@ import (
 	"ffxvi-bard/infrastructure/filesystem"
 	"ffxvi-bard/infrastructure/oauth"
 	"ffxvi-bard/port/contract"
+	"fmt"
 )
 
 func GetDatabaseDriver() contract.DatabaseDriverInterface {
 	config := GetConfig()
 	driver, err := database.NewSqlDriver(&config.Database)
 	if err != nil {
-		panic("Cannot access UserRepository.")
+		panic(fmt.Sprintf("Cannot access UserRepository. Reason %s", err))
 	}
 	return driver
 }

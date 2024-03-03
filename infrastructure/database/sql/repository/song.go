@@ -35,7 +35,12 @@ func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) (i
 	}
 	song.ID = int(songID)
 
+	uniqueGenreIDs := make(map[int]struct{})
 	for _, genreID := range genreIDs {
+		uniqueGenreIDs[genreID] = struct{}{}
+	}
+
+	for genreID := range uniqueGenreIDs {
 		err = s.insertSongGenre(songID, genreID)
 		if err != nil {
 			return 0, fmt.Errorf("error inserting song-genre relationship: %w", err)
@@ -46,7 +51,7 @@ func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) (i
 }
 
 func (s *SongRepository) insertSongGenre(songID int64, genreID int) error {
-	query := `INSERT INTO song_genre (song_id, genre_id) VALUES (?, ?)`
+	query := `INSERT IGNORE INTO song_genre (song_id, genre_id) VALUES (?, ?)`
 	_, err := s.driver.Execute(query, songID, genreID)
 	if err != nil {
 		return fmt.Errorf("error inserting into song_genre: %w", err)

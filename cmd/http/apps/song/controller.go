@@ -25,12 +25,12 @@ type Controller struct {
 	songEditForm         form.SongEditForm
 }
 
-func NewSongController(song *song.Song, errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer,
+func NewSongController(song song.Song, errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer,
 	addSongFormProcessor form.SubmitSongForm, songListForm form.SongList, newSongFormView form.NewSongFormView,
 	songDetailsForm form.SongDetails, submitSongRatingForm form.SubmitSongRatingForm, submitCommentForm form.SubmitCommentForm,
-	songEditForm form.SongEditForm) *Controller {
-	return &Controller{
-		Song:                 *song,
+	songEditForm form.SongEditForm) Controller {
+	return Controller{
+		Song:                 song,
 		ErrorHandler:         errorHandler,
 		Renderer:             renderer,
 		addSongFormProcessor: addSongFormProcessor,
