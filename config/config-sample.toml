@@ -1,7 +1,7 @@
 #This is a sample for the configuration file for the server. It is in the TOML format.
 
 [database]
-database = "sqlite3"
+database = "sqlite"
 path = "/path/to/database.db"
 
 [song]

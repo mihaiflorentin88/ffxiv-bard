@@ -31,7 +31,7 @@ func (f Fixture) Execute() {
 	db := database.Instance
 	fixtureFiles := f.GetFixtureFiles("infrastructure/database/sql/fixtures/files/")
 
-	err := fixtures.LoadFiles(fixtureFiles, db, "sqlite3")
+	err := fixtures.LoadFiles(fixtureFiles, db, "sqlite")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -7,6 +7,8 @@ import (
 	"ffxvi-bard/port/contract"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"log"
+	"path/filepath"
 )
 
 //go:embed config.toml
@@ -22,6 +24,13 @@ type Config struct {
 type DatabaseConfig struct {
 	Database string `toml:"database"`
 	Path     string `toml:"path"`
+}
+
+func EnsureFolder(path string, fs contract.FileSystemInterface) {
+	err := fs.EnsureDir(path)
+	if err != nil {
+		log.Panicf("Cannot create new folder on path %s", path)
+	}
 }
 
 type SongConfig struct {
@@ -69,6 +78,8 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 	config.Song.filesystem = fs
+	dbPath := filepath.Dir(config.Database.Path)
+	EnsureFolder(dbPath, fs)
 	config.Song.ensureFolders()
-	return &config, nil
+	return &config, err
 }

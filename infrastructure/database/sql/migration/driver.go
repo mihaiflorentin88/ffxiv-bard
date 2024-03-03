@@ -11,9 +11,8 @@ import (
 	"net/http"
 
 	"ffxvi-bard/port/contract"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 //go:embed query/*.sql
@@ -57,7 +56,7 @@ func (d *migrationDriver) Execute(commandType string) {
 		log.Fatalf("Failed to create source driver: %v", err)
 	}
 
-	m, err := migrate.NewWithInstance("httpfs", sourceDriver, "sqlite3", driver)
+	m, err := migrate.NewWithInstance("httpfs", sourceDriver, "sqlite", driver)
 	if err != nil {
 		log.Fatalf("Failed to create migrate instance: %v", err)
 	}
