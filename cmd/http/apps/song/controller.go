@@ -89,6 +89,7 @@ func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
 }
 
 func (s *Controller) HandleAddNewSong(c *gin.Context) {
+	const maxFileSize = 10 << 20
 	title := c.PostForm("title")
 	artist := c.PostForm("artist")
 	ensembleSize := c.PostForm("ensembleSize")
@@ -97,6 +98,9 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
+	}
+	if fileHeader.Size > maxFileSize {
+		s.ErrorHandler.RenderTemplate(errors.New("file size exceeds the 10MB limit"), http.StatusBadRequest, c)
 	}
 	sessionUser, _ := c.Get("user")
 	loggedUser, err := user.FromSession(sessionUser)
