@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"ffxvi-bard/domain/user"
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
@@ -38,41 +37,41 @@ func (a *Controller) RenderLoginPage(c *gin.Context) {
 func (a *Controller) LoginWithDiscord(c *gin.Context) {
 	oauthConf := a.Oauth.Auth()
 	state, err := a.Oauth.GetStateToken()
-	lts := a.Oauth.GenerateJWT(state)
+	stateJWT := a.Oauth.GenerateJWT(state)
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
 		return
 	}
-	encodedLts, err := a.Oauth.EncodeJWT(lts)
+	encodedState, err := a.Oauth.EncodeJWT(stateJWT)
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
 		return
 	}
-	c.SetCookie("lts", encodedLts, 60, "/", "", false, false)
-	c.Redirect(http.StatusTemporaryRedirect, oauthConf.AuthCodeURL(state))
+	//c.SetCookie("lts", encodedState, 60, "/", "", false, false)
+	c.Redirect(http.StatusTemporaryRedirect, oauthConf.AuthCodeURL(encodedState))
 }
 
 func (a *Controller) LoginWithDiscordCallback(c *gin.Context) {
 	code := c.Query("code")
 	retrievedState := c.Query("state")
-	lts, _ := c.Cookie("lts")
-	ltsDecoded, err := a.Oauth.DecodeJWT(lts)
+	//lts, _ := c.Cookie("lts")
+	_, err := a.Oauth.DecodeJWT(retrievedState)
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
 		return
 	}
 
-	myState, err := a.Oauth.GetStateToken()
+	//myState, err := a.Oauth.GetStateToken()
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
 		return
 	}
-	if retrievedState != myState {
-		if ltsDecoded != retrievedState {
-			a.ErrorHandler.RenderTemplate(errors.New("state does not match"), http.StatusUnauthorized, c)
-			return
-		}
-	}
+	//if retrievedState != myState {
+	//	if ltsDecoded != retrievedState {
+	//		a.ErrorHandler.RenderTemplate(errors.New("state does not match"), http.StatusUnauthorized, c)
+	//		return
+	//	}
+	//}
 	token, err := a.Oauth.Auth().Exchange(c, code)
 	if err != nil {
 		a.ErrorHandler.RenderTemplate(err, http.StatusUnauthorized, c)
