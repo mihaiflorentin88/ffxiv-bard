@@ -185,7 +185,8 @@ func (s *Controller) DownloadSong(c *gin.Context) {
 	filepath := targetSong.GetFilePath()
 	if disposition == "attachment" {
 		c.Header("Content-Disposition",
-			fmt.Sprintf("attachment; filename=[%s]%s_%s.mid",
+			fmt.Sprintf("attachment; filename=%s - %s - %s - %s.mid",
+				targetSong.AudioCrafter,
 				targetSong.EnsembleString(),
 				targetSong.Artist,
 				targetSong.Title))
