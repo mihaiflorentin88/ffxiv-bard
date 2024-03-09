@@ -1,5 +1,6 @@
 -- Up Migration
 INSERT INTO instrument (name) VALUES
+  ('N/A'),
   ('Harp'),
   ('Lute'),
   ('Fiddle'),

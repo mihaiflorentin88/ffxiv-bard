@@ -100,9 +100,11 @@ type SongListFilter struct {
 	Limit              int
 	Sort               string
 	EnsembleSizeString string
+	AudioCrafter       string
+	InstrumentID       int
 }
 
-func NewSongListFilter(title string, artist string, ensembleSize int, genreID int, offset int, limit int, sort string) *SongListFilter {
+func NewSongListFilter(title string, artist string, ensembleSize int, genreID int, offset int, limit int, sort string, audioCrafter string, instrumentID int) *SongListFilter {
 	filter := SongListFilter{
 		Title:        title,
 		Artist:       artist,
@@ -111,6 +113,8 @@ func NewSongListFilter(title string, artist string, ensembleSize int, genreID in
 		Offset:       offset,
 		Limit:        limit,
 		Sort:         sort,
+		AudioCrafter: audioCrafter,
+		InstrumentID: instrumentID,
 	}
 	if ensembleSize != -1 {
 		filter.EnsembleSizeString = song.EnsembleString(ensembleSize)
@@ -119,57 +123,47 @@ func NewSongListFilter(title string, artist string, ensembleSize int, genreID in
 }
 
 type SongList struct {
-	Songs            *[]dto.SongWithDetails
-	Genres           *[]dto.DatabaseGenre
-	SortOptions      map[string]string
-	EnsembleSize     map[int]string
-	songRepository   contract.SongRepositoryInterface
-	genreRepository  contract.GenreRepositoryInterface
-	ratingRepository contract.RatingRepositoryInterface
-	spotify          contract.MediaClientInterface
-	Filters          *SongListFilter
-	Pagination       *SongListPagination
+	Songs                *[]dto.SongWithDetails
+	Genres               *[]dto.DatabaseGenre
+	Instruments          *[]dto.DatabaseInstrument
+	SortOptions          map[string]string
+	EnsembleSize         map[int]string
+	songRepository       contract.SongRepositoryInterface
+	genreRepository      contract.GenreRepositoryInterface
+	ratingRepository     contract.RatingRepositoryInterface
+	instrumentRepository contract.InstrumentRepositoryInterface
+	Filters              *SongListFilter
+	Pagination           *SongListPagination
 }
 
-func NewSongList(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, ratingRepository contract.RatingRepositoryInterface, spotify contract.MediaClientInterface) SongList {
+func NewSongList(songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface, ratingRepository contract.RatingRepositoryInterface, instrumentRepository contract.InstrumentRepositoryInterface) SongList {
 	return SongList{
-		songRepository:   songRepository,
-		genreRepository:  genreRepository,
-		ratingRepository: ratingRepository,
-		EnsembleSize:     song.GetDetailedEnsembleString(),
-		spotify:          spotify,
+		songRepository:       songRepository,
+		genreRepository:      genreRepository,
+		ratingRepository:     ratingRepository,
+		EnsembleSize:         song.GetDetailedEnsembleString(),
+		instrumentRepository: instrumentRepository,
 	}
 }
 
-func (s *SongList) addAlbumImageToSong(song *dto.SongWithDetails) {
-	spotifySong, err := s.spotify.Search(song.Title, song.Artist)
-	if err != nil {
-		return
-	}
-	image, err := spotifySong.GetSmallestImage()
-	if err != nil {
-		return
-	}
-	song.ImageUrl = image.URL
-}
-
-func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genreID int, page int, sort string) (*SongList, error) {
+func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genreID int, audioCrafter string, instrumentID int, page int, sort string) (*SongList, error) {
 	var songs []dto.SongWithDetails
 	var totalSongs int
 	var err error
 	var genres []dto.DatabaseGenre
+	var instruments []dto.DatabaseInstrument
 
 	limit := 15
 	offset := (page - 1) * limit
-	s.Filters = NewSongListFilter(songTitle, artist, ensembleSize, genreID, page, limit, sort)
+	s.Filters = NewSongListFilter(songTitle, artist, ensembleSize, genreID, page, limit, sort, audioCrafter, instrumentID)
 	s.SortOptions = getSortOptions()
 	var wg sync.WaitGroup
-	errChan := make(chan error, 3)
+	errChan := make(chan error, 4)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		songs, err = s.songRepository.FetchForPagination(songTitle, artist, ensembleSize, genreID, sort, limit, offset)
+		songs, err = s.songRepository.FetchForPagination(songTitle, artist, ensembleSize, audioCrafter, instrumentID, genreID, sort, limit, offset)
 		if err != nil {
 			errChan <- err
 		}
@@ -178,7 +172,7 @@ func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genr
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		totalSongs, err = s.songRepository.FetchTotalSongsForListing(songTitle, artist, ensembleSize, genreID)
+		totalSongs, err = s.songRepository.FetchTotalSongsForListing(songTitle, artist, ensembleSize, audioCrafter, instrumentID, genreID)
 		if err != nil {
 			errChan <- err
 		}
@@ -188,6 +182,15 @@ func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genr
 	go func() {
 		defer wg.Done()
 		genres, err = s.genreRepository.FetchAll()
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		instruments, err = s.instrumentRepository.FetchAll()
 		if err != nil {
 			errChan <- err
 		}
@@ -206,5 +209,6 @@ func (s *SongList) Fetch(songTitle string, artist string, ensembleSize int, genr
 	}
 	s.Songs = &songs
 	s.Genres = &genres
+	s.Instruments = &instruments
 	return s, nil
 }

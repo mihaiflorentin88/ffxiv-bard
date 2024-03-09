@@ -62,7 +62,7 @@ gen
 
 config/config.toml
 config/config.toml.old
-database.db
+database.db.bkp
 infrastructure/database/sql/fixtures/files/*.yml
 database.db.bkp
 

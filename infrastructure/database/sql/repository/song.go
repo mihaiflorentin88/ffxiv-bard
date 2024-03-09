@@ -17,14 +17,14 @@ func NewSongRepository(driver contract.DatabaseDriverInterface) contract.SongRep
 	}
 }
 
-func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) (int, error) {
+func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int, instrumentIDs []int) (int, error) {
 	query := `
 		INSERT INTO song 
-		    (title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, created_at, updated_at)
+		    (title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, source, note, audio_crafter, created_at, updated_at)
 			  VALUES
-		    (?, ?, ?, ?, ?, ?, ?, ?,  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+		    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 
-	result, err := s.driver.Execute(query, song.Title, song.Artist, song.EnsembleSize, song.Filename, song.UploaderID, song.Status, song.StatusMessage, song.Checksum)
+	result, err := s.driver.Execute(query, song.Title, song.Artist, song.EnsembleSize, song.Filename, song.UploaderID, song.Status, song.StatusMessage, song.Checksum, song.Source, song.Note, song.AudioCrafter)
 	if err != nil {
 		return 0, fmt.Errorf("error inserting new song: %w", err)
 	}
@@ -47,6 +47,18 @@ func (s *SongRepository) InsertNewSong(song dto.DatabaseSong, genreIDs []int) (i
 		}
 	}
 
+	uniqueInstrumentIDs := make(map[int]struct{})
+	for _, instrumentID := range instrumentIDs {
+		uniqueInstrumentIDs[instrumentID] = struct{}{}
+	}
+
+	for instrumentID := range uniqueInstrumentIDs {
+		err = s.insertSongInstrument(songID, instrumentID)
+		if err != nil {
+			return 0, fmt.Errorf("error inserting song-instrument relationship: %w", err)
+		}
+	}
+
 	return int(songID), nil
 }
 
@@ -59,21 +71,39 @@ func (s *SongRepository) insertSongGenre(songID int64, genreID int) error {
 	return nil
 }
 
-func (s *SongRepository) UpdateSong(song dto.DatabaseSong, newGenreIDs []int) error {
+func (s *SongRepository) insertSongInstrument(songID int64, instrumentID int) error {
+	query := `INSERT OR IGNORE INTO song_instrument (song_id, instrument_id) VALUES (?, ?)`
+	_, err := s.driver.Execute(query, songID, instrumentID)
+	if err != nil {
+		return fmt.Errorf("error inserting into song_instrument: %w", err)
+	}
+	return nil
+}
+
+func (s *SongRepository) UpdateSong(song dto.DatabaseSong, newGenreIDs []int, newInstrumentIDs []int) error {
 	db, err := s.driver.GetConnection()
 	if err != nil {
 		return err
 	}
+	uniqueGenreIDs := removeDuplicates(newGenreIDs)
+	uniqueInstrumentIDs := removeDuplicates(newInstrumentIDs)
+
+	// Starts the transaction
+
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec("UPDATE song SET title = ?, artist = ?, ensemble_size = ? WHERE id = ?",
-		song.Title, song.Artist, song.EnsembleSize, song.ID)
+
+	// Updates the song
+	_, err = tx.Exec("UPDATE song SET title = ?, artist = ?, ensemble_size = ?, source = ?, audio_crafter = ?, note = ? WHERE id = ?",
+		song.Title, song.Artist, song.EnsembleSize, song.Source, song.AudioCrafter, song.Note, song.ID)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
+
+	// Updates the Genres
 	var currentGenreIDs []int
 	rows, err := tx.Query("SELECT genre_id FROM song_genre WHERE song_id = ?", song.ID)
 	if err != nil {
@@ -91,7 +121,7 @@ func (s *SongRepository) UpdateSong(song dto.DatabaseSong, newGenreIDs []int) er
 		currentGenreIDs = append(currentGenreIDs, id)
 	}
 
-	genresToAdd, genresToRemove := diffGenres(currentGenreIDs, newGenreIDs)
+	genresToAdd, genresToRemove := diffGenres(currentGenreIDs, uniqueGenreIDs)
 
 	for _, genreID := range genresToRemove {
 		_, err = tx.Exec("DELETE FROM song_genre WHERE song_id = ? AND genre_id = ?", song.ID, genreID)
@@ -108,6 +138,43 @@ func (s *SongRepository) UpdateSong(song dto.DatabaseSong, newGenreIDs []int) er
 			return err
 		}
 	}
+
+	// Updates the Instruments
+	var currentInstrumentIDs []int
+	rows, err = tx.Query("SELECT instrument_id FROM song_instrument WHERE song_id = ?", song.ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			tx.Rollback()
+			return err
+		}
+		currentInstrumentIDs = append(currentInstrumentIDs, id)
+	}
+
+	instrumentsToAdd, instrumentsToRemove := diffInstruments(currentInstrumentIDs, uniqueInstrumentIDs)
+
+	for _, instrumentID := range instrumentsToRemove {
+		_, err = tx.Exec("DELETE FROM song_instrument WHERE song_id = ? AND instrument_id = ?", song.ID, instrumentID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	for _, instrumentID := range instrumentsToAdd {
+		_, err = tx.Exec("INSERT INTO song_instrument (song_id, instrument_id) VALUES (?, ?)", song.ID, instrumentID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	return tx.Commit()
 }
 
@@ -123,7 +190,7 @@ func (s *SongRepository) UpdateStatus(songID int, status int, message string) er
 func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, error) {
 	var songDTO dto.DatabaseSong
 
-	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
+	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at, source, note, audio_crafter
 			  FROM song
 			  WHERE checksum = ?`
 
@@ -144,6 +211,9 @@ func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, erro
 		&songDTO.LockExpireTS,
 		&songDTO.CreatedAt,
 		&songDTO.UpdatedAt,
+		&songDTO.Source,
+		&songDTO.Note,
+		&songDTO.AudioCrafter,
 	)
 	if err != nil {
 		return dto.DatabaseSong{}, fmt.Errorf("error scanning song by checksum: %w", err)
@@ -155,7 +225,7 @@ func (s *SongRepository) FindByChecksum(checksum string) (dto.DatabaseSong, erro
 func (s *SongRepository) FindByID(songID int) (dto.DatabaseSong, error) {
 	var songDTO dto.DatabaseSong
 
-	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
+	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at, source, note, audio_crafter
 			  FROM song
 			  WHERE id = ?`
 
@@ -176,6 +246,9 @@ func (s *SongRepository) FindByID(songID int) (dto.DatabaseSong, error) {
 		&songDTO.LockExpireTS,
 		&songDTO.CreatedAt,
 		&songDTO.UpdatedAt,
+		&songDTO.Source,
+		&songDTO.Note,
+		&songDTO.AudioCrafter,
 	)
 	if err != nil {
 		return dto.DatabaseSong{}, fmt.Errorf("error scanning song by id: %w", err)
@@ -186,7 +259,7 @@ func (s *SongRepository) FindByID(songID int) (dto.DatabaseSong, error) {
 
 func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	var songs []dto.DatabaseSong
-	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at
+	query := `SELECT id, title, artist, ensemble_size, filename, uploader_id, status, status_message, checksum, lock_expire_ts, created_at, updated_at, source, note, audio_crafter
 			  FROM song WHERE  status = 2`
 
 	rows, err := s.driver.FetchMany(query)
@@ -195,7 +268,7 @@ func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	}
 	for rows.Next() {
 		var song dto.DatabaseSong
-		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.Filename, &song.UploaderID, &song.Status, &song.StatusMessage, &song.Checksum, &song.LockExpireTS, &song.CreatedAt, &song.UpdatedAt)
+		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.Filename, &song.UploaderID, &song.Status, &song.StatusMessage, &song.Checksum, &song.LockExpireTS, &song.CreatedAt, &song.UpdatedAt, &song.Source, &song.Note, &song.AudioCrafter)
 		if err != nil {
 			return nil, err
 		}
@@ -207,36 +280,8 @@ func (s *SongRepository) FetchAll() (*[]dto.DatabaseSong, error) {
 	return &songs, nil
 }
 
-func (s *SongRepository) FetchForPagination(songTitle string, artist string, ensembleSize int, genreID int, sort string, limit int, offset int) ([]dto.SongWithDetails, error) {
+func (s *SongRepository) FetchForPagination(songTitle string, artist string, ensembleSize int, audioCrafter string, instrumentID int, genreID int, sort string, limit int, offset int) ([]dto.SongWithDetails, error) {
 	var songs []dto.SongWithDetails
-
-	//query := `
-	//		SELECT
-	//			s.id,
-	//			s.title,
-	//			s.artist,
-	//			s.ensemble_size,
-	//			u.name AS uploader_name,
-	//					(SELECT GROUP_CONCAT(g.name)
-	//					 FROM genre g
-	//					 LEFT JOIN song_genre sg ON g.id = sg.genre_id
-	//					 WHERE s.id = sg.song_id) as genre_name,
-	//			COALESCE(
-	//					(SELECT ROUND(AVG(r.rating), 2)
-	//					 FROM rating r
-	//					 WHERE r.song_id = s.id),
-	//					0) AS average_rating,
-	//			COALESCE(
-	//					(SELECT COUNT(c.id)
-	//					 FROM comment c
-	//					 WHERE c.song_id = s.id),
-	//					0) AS total_comments
-	//		FROM
-	//			song s
-	//		LEFT JOIN user u ON s.uploader_id = u.id
-	//		WHERE s.status = 2
-	//`
-
 	query := `
 		SELECT
 			s.id,
@@ -244,7 +289,9 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 			s.artist,
 			s.ensemble_size,
 			u.name AS uploader_name,
-			GROUP_CONCAT(DISTINCT g.name) AS genre_name,
+			s.audio_crafter as audio_crafter,
+			COALESCE(GROUP_CONCAT(DISTINCT g.name), 'N/A') AS genre_name,
+			COALESCE(GROUP_CONCAT(DISTINCT i.name), 'N/A') AS instrument_name,
 			COALESCE(ROUND(AVG(r.rating), 2), 0) AS average_rating,
 			COUNT(DISTINCT c.id) AS total_comments 
 		FROM
@@ -252,6 +299,8 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 		LEFT JOIN user u ON s.uploader_id = u.id
 		LEFT JOIN song_genre sg ON s.id = sg.song_id 
 		LEFT JOIN genre g ON sg.genre_id = g.id 
+		LEFT JOIN song_instrument si ON s.id = si.song_id 
+		LEFT JOIN instrument i ON si.instrument_id = i.id 
 		LEFT JOIN rating r ON s.id = r.song_id
 		LEFT JOIN comment c ON s.id = c.song_id
 		WHERE s.status = 2 
@@ -271,10 +320,21 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 		conditions = append(conditions, "s.ensemble_size = ?")
 		args = append(args, ensembleSize)
 	}
+
+	if audioCrafter != "" {
+		conditions = append(conditions, "s.audio_crafter like ?")
+		args = append(args, "%"+audioCrafter+"%")
+	}
 	if genreID != -1 {
 		conditions = append(conditions, "g.id = ?")
 		args = append(args, genreID)
 	}
+
+	if instrumentID != -1 {
+		conditions = append(conditions, "i.id = ?")
+		args = append(args, instrumentID)
+	}
+
 	if len(conditions) > 0 {
 		query += " AND " + strings.Join(conditions, " AND ")
 	}
@@ -311,7 +371,7 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 
 	for rows.Next() {
 		var song dto.SongWithDetails
-		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.UploaderName, &song.GenreName, &song.AverageRating, &song.TotalComments)
+		err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.EnsembleSize, &song.UploaderName, &song.AudioCrafter, &song.GenreName, &song.InstrumentName, &song.AverageRating, &song.TotalComments)
 		if err != nil {
 			continue
 		}
@@ -324,7 +384,7 @@ func (s *SongRepository) FetchForPagination(songTitle string, artist string, ens
 	return songs, nil
 }
 
-func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist string, ensembleSize int, genreID int) (int, error) {
+func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist string, ensembleSize int, audioCrafter string, instrumentID int, genreID int) (int, error) {
 	var totalCount int
 	query := `
     SELECT 
@@ -333,6 +393,8 @@ func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist stri
     LEFT JOIN user u ON s.uploader_id = u.id
     LEFT JOIN song_genre sg ON s.id = sg.song_id
     LEFT JOIN genre g ON sg.genre_id = g.id
+    LEFT JOIN song_instrument si ON s.id = si.song_id    
+    LEFT JOIN instrument i ON i.id = si.instrument_id
     LEFT JOIN rating r ON s.id = r.song_id
     LEFT JOIN comment c ON s.id = c.song_id 
     WHERE s.status = 2
@@ -348,10 +410,22 @@ func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist stri
 		conditions = append(conditions, "s.artist LIKE ?")
 		args = append(args, "%"+artist+"%")
 	}
+
+	if audioCrafter != "" {
+		conditions = append(conditions, "s.audio_crafter like ?")
+		args = append(args, "%"+audioCrafter+"%")
+	}
+
 	if ensembleSize != -1 {
 		conditions = append(conditions, "s.ensemble_size = ?")
 		args = append(args, ensembleSize)
 	}
+
+	if instrumentID != -1 {
+		conditions = append(conditions, "i.id = ?")
+		args = append(args, instrumentID)
+	}
+
 	if genreID != -1 {
 		conditions = append(conditions, "g.id = ?")
 		args = append(args, genreID)
@@ -368,4 +442,27 @@ func (s *SongRepository) FetchTotalSongsForListing(songTitle string, artist stri
 		return 0, err
 	}
 	return totalCount, nil
+}
+
+func (s *SongRepository) IncrementDownloadCount(songID int) error {
+	query := `UPDATE song SET download_count = download_count + 1 WHERE id = ?`
+	_, err := s.driver.Execute(query, songID)
+	if err != nil {
+		return fmt.Errorf("error updating download count: %w", err)
+	}
+	return nil
+}
+
+func removeDuplicates(slice []int) []int {
+	seen := make(map[int]bool)
+	unique := []int{}
+
+	for _, value := range slice {
+		if _, ok := seen[value]; !ok {
+			seen[value] = true
+			unique = append(unique, value)
+		}
+	}
+
+	return unique
 }

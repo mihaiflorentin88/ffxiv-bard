@@ -1,5 +1,6 @@
 -- Down Migration
 DELETE FROM instrument WHERE name IN (
+  'N/A',
   'Harp',
   'Lute',
   'Fiddle',

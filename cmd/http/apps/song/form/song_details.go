@@ -13,6 +13,12 @@ type Genre struct {
 	ID   int
 	Name string
 }
+
+type Instrument struct {
+	ID   int
+	Name string
+}
+
 type Comment struct {
 	StorageID int
 	Author    string
@@ -25,23 +31,28 @@ type Comment struct {
 }
 
 type SongDetails struct {
-	ID                 int
-	Title              string
-	Artist             string
-	Filename           string
-	EnsembleSize       int
-	EnsembleSizeString string
-	Genre              []Genre
-	CanEdit            bool
-	Comments           []Comment
-	Uploader           string
-	Rating             float64
-	LoggedUserRating   int
-	genreRepository    contract.GenreRepositoryInterface
-	commentRepository  *contract.CommentRepositoryInterface
-	ratingRepository   contract.RatingRepositoryInterface
-	song               *song.Song
-	loggedUser         *user.User
+	ID                   int
+	Title                string
+	Artist               string
+	Filename             string
+	EnsembleSize         int
+	EnsembleSizeString   string
+	Genre                []Genre
+	Source               string
+	Note                 string
+	AudioCrafter         string
+	Instrument           []Instrument
+	CanEdit              bool
+	Comments             []Comment
+	Uploader             string
+	Rating               float64
+	LoggedUserRating     int
+	genreRepository      contract.GenreRepositoryInterface
+	commentRepository    contract.CommentRepositoryInterface
+	instrumentRepository contract.InstrumentRepositoryInterface
+	ratingRepository     contract.RatingRepositoryInterface
+	song                 song.Song
+	loggedUser           *user.User
 }
 
 func (s *SongDetails) GetAvailableStars() []int {
@@ -52,12 +63,13 @@ func (s *SongDetails) GetAvailableStars() []int {
 	return stars
 }
 
-func NewSongDetailsForm(genreRepository contract.GenreRepositoryInterface, commentRepository *contract.CommentRepositoryInterface, ratingRepository contract.RatingRepositoryInterface, song *song.Song) SongDetails {
+func NewSongDetailsForm(genreRepository contract.GenreRepositoryInterface, commentRepository contract.CommentRepositoryInterface, ratingRepository contract.RatingRepositoryInterface, instrumentRepository contract.InstrumentRepositoryInterface, song *song.Song) SongDetails {
 	return SongDetails{
-		genreRepository:   genreRepository,
-		song:              song,
-		commentRepository: commentRepository,
-		ratingRepository:  ratingRepository,
+		genreRepository:      genreRepository,
+		song:                 *song,
+		commentRepository:    commentRepository,
+		ratingRepository:     ratingRepository,
+		instrumentRepository: instrumentRepository,
 	}
 }
 
@@ -73,7 +85,6 @@ func (s *SongDetails) Fetch(songId int, c *gin.Context) (*SongDetails, error) {
 }
 
 func (s *SongDetails) hydrate() {
-	var genres []Genre
 	var comments []Comment
 	s.ID = s.song.StorageID
 	s.Title = s.song.Title
@@ -81,13 +92,23 @@ func (s *SongDetails) hydrate() {
 	s.Filename = s.song.Filename
 	s.EnsembleSize = int(s.song.EnsembleSize)
 	s.EnsembleSizeString = song.EnsembleString(s.EnsembleSize)
+	s.Source = s.song.Source
+	s.Note = s.song.Note
+	s.AudioCrafter = s.song.AudioCrafter
 	for _, genre := range s.song.Genre {
 		renderedGenre := Genre{
 			ID:   genre.StorageID,
 			Name: genre.Name}
-		genres = append(genres, renderedGenre)
+		s.Genre = append(s.Genre, renderedGenre)
 	}
-	s.Genre = genres
+
+	for _, instrument := range s.song.Instrument {
+		renderedInstrument := Instrument{
+			ID:   instrument.StorageID,
+			Name: instrument.Name,
+		}
+		s.Instrument = append(s.Instrument, renderedInstrument)
+	}
 	if s.loggedUser != nil {
 		if s.loggedUser.StorageID == s.song.Uploader.StorageID || s.song.Uploader.IsAdmin {
 			s.CanEdit = true

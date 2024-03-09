@@ -29,6 +29,7 @@ func GenerateFixtures(count int) {
 	songGenres := make([]dto.DatabaseSongGenre, count)
 	ratings := make([]dto.DatabaseRating, count)
 	comments := make([]dto.DatabaseComment, count)
+	songInstruments := make([]dto.DatabaseSongInstrument, count)
 
 	generateFixtures(users, "user")
 	generateFixtures(songs, "song")
@@ -36,6 +37,7 @@ func GenerateFixtures(count int) {
 	generateFixtures(songGenres, "song_genre")
 	generateFixtures(ratings, "rating")
 	generateFixtures(comments, "comment")
+	generateFixtures(songInstruments, "song_instrument")
 }
 
 func generateFixtures(slice interface{}, tableName string) {
@@ -59,12 +61,16 @@ func generateFixtures(slice interface{}, tableName string) {
 		}
 
 		if song, ok := elem.(*dto.DatabaseSong); ok {
+			sourceChoices := []string{faker.URL(), faker.Email(), faker.Name()}
 			song.ID = i + 1
 			song.EnsembleSize = rand.Intn(7)
 			song.Status = rand.Intn(4)
 			song.Title = faker.Name()
 			song.Artist = faker.Name()
 			song.UploaderID = int64(i + 1)
+			song.AudioCrafter = faker.Name()
+			song.Note = faker.Name()
+			song.Source = sourceChoices[rand.Intn(len(sourceChoices))]
 		}
 
 		if rating, ok := elem.(*dto.DatabaseRating); ok {
@@ -77,6 +83,10 @@ func generateFixtures(slice interface{}, tableName string) {
 		if songGenre, ok := elem.(*dto.DatabaseSongGenre); ok {
 			songGenre.SongID = i + 1
 			songGenre.GenreID = rand.Intn(37) + 1
+		}
+		if songGenre, ok := elem.(*dto.DatabaseSongInstrument); ok {
+			songGenre.SongID = i + 1
+			songGenre.InstrumentID = rand.Intn(24) + 1
 		}
 
 		if comment, ok := elem.(*dto.DatabaseComment); ok {

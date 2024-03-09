@@ -50,16 +50,21 @@ func (s *Controller) RenderSongList(c *gin.Context) {
 	}
 	title := c.Query("title")
 	artist := c.Query("artist")
+	audioCrafter := c.Query("audio_crafter")
 	sort := c.Query("sort")
 	ensembleSize, err := strconv.Atoi(c.Query("ensembleSize"))
 	if err != nil {
 		ensembleSize = -1
 	}
+	instrumentID, err := strconv.Atoi(c.Query("instrument"))
+	if err != nil {
+		instrumentID = -1
+	}
 	genre, err := strconv.Atoi(c.Query("genre"))
 	if err != nil {
 		genre = -1
 	}
-	songListForm, err := s.songListForm.Fetch(title, artist, ensembleSize, genre, page, sort)
+	songListForm, err := s.songListForm.Fetch(title, artist, ensembleSize, genre, audioCrafter, instrumentID, page, sort)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		return
@@ -75,7 +80,9 @@ func (s *Controller) RenderSongList(c *gin.Context) {
 }
 
 func (s *Controller) RenderAddNewSongForm(c *gin.Context) {
-	newSongForm, err := s.newSongFormView.Fetch()
+	copy := s.newSongFormView
+	songForm := &copy
+	newSongForm, err := songForm.Fetch()
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusInternalServerError, c)
 		return
@@ -93,7 +100,20 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 	title := c.PostForm("title")
 	artist := c.PostForm("artist")
 	ensembleSize := c.PostForm("ensembleSize")
+	source := c.PostForm("source")
+	if source == "" {
+		source = "N/A"
+	}
+	note := c.PostForm("note")
+	if note == "" {
+		note = "N/A"
+	}
+	audioCrafter := c.PostForm("crafter")
+	if audioCrafter == "" {
+		audioCrafter = "N/A"
+	}
 	genre := c.PostFormArray("genre")
+	instrument := c.PostFormArray("instrument")
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
@@ -109,7 +129,9 @@ func (s *Controller) HandleAddNewSong(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	songID, err := s.addSongFormProcessor.Submit(title, artist, ensembleSize, genre, fileHeader, loggedUser)
+	copy := s.addSongFormProcessor
+	songForm := &copy
+	songID, err := songForm.Submit(title, artist, ensembleSize, genre, fileHeader, loggedUser, source, note, audioCrafter, instrument)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
@@ -123,7 +145,9 @@ func (s *Controller) SongDetails(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	songDetails, err := s.songDetailsForm.Fetch(songID, c)
+	copy := s.songDetailsForm
+	songDetailsForm := &copy
+	songDetails, err := songDetailsForm.Fetch(songID, c)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
@@ -165,6 +189,7 @@ func (s *Controller) DownloadSong(c *gin.Context) {
 				targetSong.EnsembleString(),
 				targetSong.Artist,
 				targetSong.Title))
+		_ = targetSong.IncrementDownload()
 	}
 	c.File(filepath)
 }
@@ -186,7 +211,9 @@ func (s *Controller) SubmitSongRating(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(errors.New("the rating has to be an integer"), http.StatusBadRequest, c)
 		return
 	}
-	err = s.submitSongRatingForm.Submit(loggedUser, songID, rating)
+	copy := s.submitSongRatingForm
+	ratingForm := &copy
+	err = ratingForm.Submit(loggedUser, songID, rating)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
@@ -215,7 +242,9 @@ func (s *Controller) SubmitSongComment(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(errors.New("your comment cannot have more then 500 characters"), http.StatusBadRequest, c)
 		return
 	}
-	err = s.submitCommentForm.Submit(loggedUser, songID, comment)
+	copy := s.submitCommentForm
+	commentForm := &copy
+	err = commentForm.Submit(loggedUser, songID, comment)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
@@ -251,7 +280,9 @@ func (s *Controller) SubmitSongCommentUpdate(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(errors.New("your comment cannot have more then 500 characters"), http.StatusBadRequest, c)
 		return
 	}
-	err = s.submitCommentForm.SubmitUpdate(loggedUser, json.Content, json.CommentId)
+	copy := s.submitCommentForm
+	commentForm := &copy
+	err = commentForm.SubmitUpdate(loggedUser, json.Content, json.CommentId)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
@@ -274,7 +305,10 @@ func (s *Controller) EditSongView(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
 	}
-	songEditForm, err := s.songEditForm.Fetch(songID, loggedUser)
+	copy := s.songEditForm
+	editForm := &copy
+
+	songEditForm, err := editForm.Fetch(songID, loggedUser)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return
@@ -303,6 +337,9 @@ func (s *Controller) SubmitEditSong(c *gin.Context) {
 	}
 	title := c.PostForm("title")
 	artist := c.PostForm("artist")
+	source := c.PostForm("source")
+	note := c.PostForm("note")
+	audioCrafter := c.PostForm("crafter")
 	ensembleSize, err := strconv.Atoi(c.PostForm("ensembleSize"))
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(errors.New("the ensembleSize has to be an integer"), http.StatusBadRequest, c)
@@ -319,7 +356,20 @@ func (s *Controller) SubmitEditSong(c *gin.Context) {
 		genreIDs = append(genreIDs, genreID)
 	}
 
-	err = s.songEditForm.HandleSubmittedForm(songID, title, artist, ensembleSize, genreIDs, loggedUser)
+	var instrumentIDs []int
+	instrumentStrings := c.PostFormArray("instrument")
+	for _, instrumentStringID := range instrumentStrings {
+		instrumentID, err := strconv.Atoi(instrumentStringID)
+		if err != nil {
+			s.ErrorHandler.RenderTemplate(errors.New("the instrument id has to be an integer"), http.StatusBadRequest, c)
+			return
+		}
+		instrumentIDs = append(instrumentIDs, instrumentID)
+	}
+	copy := s.songEditForm
+	editForm := &copy
+
+	err = editForm.HandleSubmittedForm(songID, title, artist, ensembleSize, genreIDs, loggedUser, source, note, audioCrafter, instrumentIDs)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(errors.New(fmt.Sprintf("failed to update song. Reason: %s", err)), http.StatusBadRequest, c)
 		return
@@ -343,7 +393,9 @@ func (s *Controller) DeleteSong(c *gin.Context) {
 		s.ErrorHandler.RenderTemplate(errors.New("cannot perform action. Reason: permission"), http.StatusBadRequest, c)
 		return
 	}
-	currentSong, err := s.Song.LoadByID(songID)
+	copy := s.Song
+	_song := &copy
+	currentSong, err := _song.LoadByID(songID)
 	if err != nil {
 		s.ErrorHandler.RenderTemplate(err, http.StatusBadRequest, c)
 		return

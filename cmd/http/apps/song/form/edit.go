@@ -10,25 +10,32 @@ import (
 )
 
 type SongEditForm struct {
-	ID                 int
-	Title              string
-	Artist             string
-	Filename           string
-	EnsembleSize       song.EnsembleSize
-	EnsembleSizeString string
-	AllEnsembleSizes   map[int]string
-	Genre              []Genre
-	AllGenres          []dto.DatabaseGenre
-	CanDelete          bool
-	genreRepository    contract.GenreRepositoryInterface
-	song               *song.Song
-	loggedUser         *user.User
+	ID                   int
+	Title                string
+	Artist               string
+	Source               string
+	Note                 string
+	AudioCrafter         string
+	Filename             string
+	EnsembleSize         song.EnsembleSize
+	EnsembleSizeString   string
+	AllEnsembleSizes     map[int]string
+	Genre                []Genre
+	Instrument           []Instrument
+	AllGenres            []dto.DatabaseGenre
+	AllInstruments       []dto.DatabaseInstrument
+	CanDelete            bool
+	genreRepository      contract.GenreRepositoryInterface
+	instrumentRepository contract.InstrumentRepositoryInterface
+	song                 *song.Song
+	loggedUser           *user.User
 }
 
-func NewSongEditForm(genreRepository contract.GenreRepositoryInterface, song *song.Song) SongEditForm {
+func NewSongEditForm(genreRepository contract.GenreRepositoryInterface, instrumentRepository contract.InstrumentRepositoryInterface, song *song.Song) SongEditForm {
 	return SongEditForm{
-		song:            song,
-		genreRepository: genreRepository,
+		song:                 song,
+		genreRepository:      genreRepository,
+		instrumentRepository: instrumentRepository,
 	}
 }
 
@@ -41,22 +48,27 @@ func (s *SongEditForm) ContainsGenre(id int) bool {
 	return false
 }
 
-func (s *SongEditForm) resetForm() {
-	s.ID = 0
-	s.Title = ""
-	s.Artist = ""
-	s.Filename = ""
-	s.EnsembleSize = 0
-	s.CanDelete = false
-	s.EnsembleSizeString = ""
-	s.AllEnsembleSizes = make(map[int]string)
-	s.Genre = []Genre{}
-	s.AllGenres = []dto.DatabaseGenre{}
-	s.loggedUser = &user.User{}
-}
+//func (s *SongEditForm) resetForm() {
+//	s.ID = 0
+//	s.Title = ""
+//	s.Artist = ""
+//	s.Source = ""
+//	s.Note = ""
+//	s.AudioCrafter = ""
+//	s.Filename = ""
+//	s.EnsembleSize = 0
+//	s.Instrument = []Instrument{}
+//	s.CanDelete = false
+//	s.EnsembleSizeString = ""
+//	s.AllEnsembleSizes = make(map[int]string)
+//	s.Genre = []Genre{}
+//	s.AllGenres = []dto.DatabaseGenre{}
+//	s.AllInstruments = []dto.DatabaseInstrument{}
+//	s.loggedUser = &user.User{}
+//}
 
 func (s *SongEditForm) Fetch(songID int, loggedUser *user.User) (SongEditForm, error) {
-	s.resetForm()
+	//s.resetForm()
 	_, err := s.song.LoadByID(songID)
 	if err != nil {
 		return *s, err
@@ -74,8 +86,16 @@ func (s *SongEditForm) Fetch(songID int, loggedUser *user.User) (SongEditForm, e
 	if err != nil {
 		return *s, errors.New(fmt.Sprintf("failed to fetch available genres. Reason: %s", err))
 	}
+	instruments, err := s.instrumentRepository.FetchAll()
+	if err != nil {
+		return *s, errors.New(fmt.Sprintf("failed to fetch available instruments. Reason: %s", err))
+	}
 	s.CanDelete = loggedUser.IsAdmin
 	s.AllGenres = genres
+	s.AllInstruments = instruments
+	s.Source = s.song.Source
+	s.Note = s.song.Note
+	s.AudioCrafter = s.song.AudioCrafter
 	s.ID = s.song.StorageID
 	s.Title = s.song.Title
 	s.Artist = s.song.Artist
@@ -84,11 +104,14 @@ func (s *SongEditForm) Fetch(songID int, loggedUser *user.User) (SongEditForm, e
 	for _, genre := range s.song.Genre {
 		s.Genre = append(s.Genre, Genre{ID: genre.StorageID, Name: genre.Name})
 	}
+	for _, instrument := range s.song.Instrument {
+		s.Instrument = append(s.Instrument, Instrument{ID: instrument.StorageID, Name: instrument.Name})
+	}
 	return *s, nil
 }
 
-func (s *SongEditForm) HandleSubmittedForm(songID int, title string, artist string, ensembleSize int, genreIDs []int, loggedUser *user.User) error {
-	s.resetForm()
+func (s *SongEditForm) HandleSubmittedForm(songID int, title string, artist string, ensembleSize int, genreIDs []int, loggedUser *user.User, source string, note string, audioCrafter string, instrumentIDs []int) error {
+	//s.resetForm()
 	_, err := s.song.LoadByID(songID)
 	if err != nil {
 		return err
@@ -103,12 +126,16 @@ func (s *SongEditForm) HandleSubmittedForm(songID int, title string, artist stri
 	s.loggedUser = loggedUser
 
 	genresDTOs, err := s.genreRepository.FetchAll()
+	instrumentDTOs, err := s.instrumentRepository.FetchAll()
 	if err != nil {
 		return err
 	}
 
 	s.song.Title = title
 	s.song.Artist = artist
+	s.song.Source = source
+	s.song.Note = note
+	s.song.AudioCrafter = audioCrafter
 	s.song.EnsembleSize, err = song.GetEnsembleSizeFromInt(ensembleSize)
 	if err != nil {
 		return err
@@ -121,6 +148,17 @@ func (s *SongEditForm) HandleSubmittedForm(songID int, title string, artist stri
 				s.song.Genre = append(s.song.Genre, song.Genre{
 					StorageID: genreDTO.ID,
 					Name:      genreDTO.Name,
+				})
+			}
+		}
+	}
+	s.song.Instrument = []song.Instrument{}
+	for _, instrumentID := range instrumentIDs {
+		for _, instrumentDTO := range instrumentDTOs {
+			if instrumentID == instrumentDTO.ID {
+				s.song.Instrument = append(s.song.Instrument, song.Instrument{
+					StorageID: instrumentDTO.ID,
+					Name:      instrumentDTO.Name,
 				})
 			}
 		}

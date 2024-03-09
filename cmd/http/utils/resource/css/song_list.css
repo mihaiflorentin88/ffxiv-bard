@@ -23,7 +23,6 @@
 
 .left-filter-block {
     width: 100%;
-
     background-size: cover;
     background-repeat: no-repeat;
     display: flex;
@@ -36,7 +35,7 @@
 
 .left-filter-block .left-filter-panel {
     max-width: 281px;
-    max-height: 227px;
+    max-height: 340px;
     margin-left: auto;
     margin-right: auto;
     width: 100%;
@@ -124,10 +123,10 @@ div .card:hover {
     background: #1d2124;
     margin-bottom: 10px;
     opacity: 0.8;
-    max-width: 17rem;
-    min-width: 17rem;
-    max-height: 17rem;
-    min-height: 17rem;
+    max-width: 19rem;
+    min-width: 19rem;
+    max-height: 19rem;
+    min-height: 19rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -156,7 +155,7 @@ a.fill-div {
     font-weight: bold;
     color: #ffc107;
     margin-top: 0.5rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.8rem;
 }
 .card-footer {
     padding: 0.5rem 1rem;

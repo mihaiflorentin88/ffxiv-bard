@@ -67,54 +67,64 @@ func EnsembleString(i int) string {
 }
 
 type Song struct {
-	StorageID      int
-	Title          string
-	Artist         string
-	EnsembleSize   EnsembleSize
-	Filename       string
-	File           []byte
-	Checksum       string
-	Rating         []Rating
-	Genre          []Genre
-	Uploader       *user.User
-	Comments       []Comment
-	status         Status
-	statusMessage  string
-	LockExpireTs   time.Time
-	SongProcessor  contract.SongProcessorInterface
-	Filesystem     contract.FileSystemInterface
-	Date           date.Date
-	songRepository contract.SongRepositoryInterface
-	emptyRating    *Rating
-	emptyComment   *Comment
-	emptyGenre     *Genre
-	emptyUser      *user.User
+	StorageID       int
+	Title           string
+	Artist          string
+	EnsembleSize    EnsembleSize
+	Filename        string
+	File            []byte
+	Checksum        string
+	Rating          []Rating
+	Genre           []Genre
+	Instrument      []Instrument
+	Source          string
+	Note            string
+	AudioCrafter    string
+	Uploader        *user.User
+	Comments        []Comment
+	status          Status
+	statusMessage   string
+	LockExpireTs    time.Time
+	SongProcessor   contract.SongProcessorInterface
+	Filesystem      contract.FileSystemInterface
+	Date            date.Date
+	songRepository  contract.SongRepositoryInterface
+	emptyRating     *Rating
+	emptyComment    *Comment
+	emptyGenre      *Genre
+	emptyUser       *user.User
+	emptyInstrument *Instrument
 }
 
-func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface, emptyUser *user.User, emptyRating *Rating, emptyComment *Comment, emptyGenre *Genre, songRepository contract.SongRepositoryInterface) *Song {
+func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface, emptyUser *user.User, emptyRating *Rating, emptyComment *Comment, emptyGenre *Genre, emptyInstrument *Instrument, songRepository contract.SongRepositoryInterface) *Song {
 	return &Song{
-		SongProcessor:  songProcessor,
-		Filesystem:     filesystem,
-		Uploader:       emptyUser,
-		emptyRating:    emptyRating,
-		emptyComment:   emptyComment,
-		emptyGenre:     emptyGenre,
-		emptyUser:      emptyUser,
-		songRepository: songRepository,
+		SongProcessor:   songProcessor,
+		Filesystem:      filesystem,
+		Uploader:        emptyUser,
+		emptyRating:     emptyRating,
+		emptyComment:    emptyComment,
+		emptyGenre:      emptyGenre,
+		emptyUser:       emptyUser,
+		emptyInstrument: emptyInstrument,
+		songRepository:  songRepository,
 	}
 }
 
 func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface,
-	songProcessor contract.SongProcessorInterface, emptyUser *user.User, emptyRating *Rating, emptyGenre *Genre, emptyComment *Comment) (*Song, error) {
+	songProcessor contract.SongProcessorInterface, emptyUser *user.User, emptyRating *Rating, emptyGenre *Genre, emptyComment *Comment, emptyInstrument *Instrument) (*Song, error) {
 	song := Song{
-		Title:         newSongDto.Title,
-		Artist:        newSongDto.Artist,
-		status:        Pending,
-		statusMessage: "Pending Song processing.",
-		emptyUser:     emptyUser,
-		emptyRating:   emptyRating,
-		emptyComment:  emptyComment,
-		emptyGenre:    emptyGenre,
+		Title:           newSongDto.Title,
+		Artist:          newSongDto.Artist,
+		Source:          newSongDto.Source,
+		Note:            newSongDto.Note,
+		AudioCrafter:    newSongDto.AudioCrafter,
+		status:          Pending,
+		statusMessage:   "Pending Song processing.",
+		emptyUser:       emptyUser,
+		emptyRating:     emptyRating,
+		emptyComment:    emptyComment,
+		emptyGenre:      emptyGenre,
+		emptyInstrument: emptyInstrument,
 	}
 	song.songRepository = songRepository
 	song.File = newSongDto.File
@@ -153,6 +163,9 @@ func (s *Song) ToDatabaseSongDTO() dto.DatabaseSong {
 		Artist:        s.Artist,
 		EnsembleSize:  int(s.EnsembleSize),
 		Filename:      s.Filename,
+		Source:        s.Source,
+		Note:          s.Note,
+		AudioCrafter:  s.AudioCrafter,
 		UploaderID:    s.Uploader.StorageID,
 		Status:        int(s.status),
 		StatusMessage: s.statusMessage,
@@ -293,21 +306,24 @@ func (s *Song) GetFilePath() string {
 
 func (s *Song) IsCorrectlyInstantiated() error {
 	if s.emptyUser == nil {
-		return errors.New("song.Song was not correctly instantiated")
+		return errors.New("song.Song was not correctly instantiated. Reason: Missing User")
 	}
 	if s.emptyGenre == nil {
-		return errors.New("song.Song was not correctly instantiated")
+		return errors.New("song.Song was not correctly instantiated. Reason: Missing Genre")
 	}
 	if s.emptyRating == nil {
-		return errors.New("song.Song was not correctly instantiated")
+		return errors.New("song.Song was not correctly instantiated. Reason: Missing Rating")
 	}
 
 	if s.emptyComment == nil {
-		return errors.New("song.Song was not correctly instantiated")
+		return errors.New("song.Song was not correctly instantiated. Reason: Missing Comment")
 	}
 
 	if s.songRepository == nil {
 		return errors.New("song.Song was not correctly instantiated")
+	}
+	if s.emptyInstrument == nil {
+		return errors.New("song.Song was not correctly instantiated. Reason: Missing Instrument")
 	}
 	return nil
 }
@@ -318,12 +334,22 @@ func (s *Song) Update() error {
 	for _, genre := range s.Genre {
 		genreIDs = append(genreIDs, genre.StorageID)
 	}
-	err := s.songRepository.UpdateSong(songDTO, genreIDs)
+
+	var instrumentIDs []int
+	for _, instrument := range s.Instrument {
+		instrumentIDs = append(instrumentIDs, instrument.StorageID)
+	}
+
+	err := s.songRepository.UpdateSong(songDTO, genreIDs, instrumentIDs)
 	return err
 }
 
 func (s *Song) SetSongRepository(songRepository contract.SongRepositoryInterface) {
 	s.songRepository = songRepository
+}
+
+func (s *Song) IncrementDownload() error {
+	return s.songRepository.IncrementDownloadCount(s.StorageID)
 }
 
 func FromDatabaseDTO(song *Song, databaseSong *dto.DatabaseSong) (*Song, error) {
@@ -334,6 +360,9 @@ func FromDatabaseDTO(song *Song, databaseSong *dto.DatabaseSong) (*Song, error) 
 	song.StorageID = databaseSong.ID
 	song.Title = databaseSong.Title
 	song.Artist = databaseSong.Artist
+	song.Note = databaseSong.Note
+	song.Source = databaseSong.Source
+	song.AudioCrafter = databaseSong.AudioCrafter
 	song.EnsembleSize, err = GetEnsembleSizeFromInt(databaseSong.EnsembleSize)
 	if err != nil {
 		return song, err
@@ -346,6 +375,10 @@ func FromDatabaseDTO(song *Song, databaseSong *dto.DatabaseSong) (*Song, error) 
 	}
 	song.Rating = ratings
 	song.Genre, err = song.emptyGenre.FetchBySongID(song.StorageID)
+	if err != nil {
+		return song, err
+	}
+	song.Instrument, err = song.emptyInstrument.FetchBySongID(song.StorageID)
 	if err != nil {
 		return song, err
 	}

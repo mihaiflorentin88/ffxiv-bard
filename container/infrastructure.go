@@ -58,3 +58,7 @@ func GetSpotifyClient() contract.MediaClientInterface {
 	appConfig := GetConfig().Spotify
 	return media.NewSpotifyClient(appConfig)
 }
+
+func GetInstrumentRepository() contract.InstrumentRepositoryInterface {
+	return repository.NewInstrumentRepository(GetDatabaseDriver())
+}

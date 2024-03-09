@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var ensembleSize = getQueryParam('ensembleSize');
     var genreId = getQueryParam('genre');
+    var instrument = getQueryParam('instrument');
 
     if (ensembleSize) {
         var ensembleSizeElement = document.getElementById('ensembleSize');
@@ -58,4 +59,10 @@ document.addEventListener('DOMContentLoaded', function () {
         var genreElement = document.getElementById('genre');
         genreElement.value = genreId;
     }
+
+    if (instrument) {
+        var instrumentElement = document.getElementById('instrument');
+        instrumentElement.value = instrument;
+    }
+
 });

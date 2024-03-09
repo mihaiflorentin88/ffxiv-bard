@@ -47,7 +47,15 @@
 
 .card-title {
     font-weight: bold;
-    color: #ff9407;
+    color: #fdb504;
+}
+
+.artist-name {
+    color: #ff8c00;
+}
+
+.fa-music {
+    color: #add8e6;
 }
 
 .text-yellow {

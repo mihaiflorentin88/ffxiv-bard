@@ -14,6 +14,10 @@
                                value="{{.Data.Filters.Artist}}">
                     </div>
                     <div class="form-group">
+                        <input type="text" class="form-control" id="audio_crafter" name="audio_crafter" placeholder="Crafter"
+                               value="{{.Data.Filters.AudioCrafter}}">
+                    </div>
+                    <div class="form-group">
                         <select class="form-control" id="ensembleSize" name="ensembleSize">*/}}
                             <option style="color: rgb(128,128,128);" value="-1" disabled selected>Ensemble size</option>
                             <option value="-1">All</option>
@@ -31,6 +35,17 @@
                             {{ end }}
                         </select>
                     </div>
+
+                    <div class="form-group">
+                        <select class="form-control" id="instrument" name="instrument">*/}}
+                            <option style="color: rgb(128,128,128);" value="-1" disabled selected>Instrument</option>
+                            <option value="-1">All</option>
+                            {{range $element := .Data.Instruments}}
+                                <option value="{{$element.ID}}">{{$element.Name}}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+
                     <div class="form-group mb-2">
                         <select class="form-control" id="sort" name="sort">
                             {{if eq .Data.Filters.Sort ""}}
@@ -39,9 +54,6 @@
                             {{range $sort_type, $sort_name := .Data.SortOptions}}
                                 <option value="{{$sort_type}}"
                                         {{if eq $sort_type $.Data.Filters.Sort}}selected{{end}}>{{$sort_name}}</option>
-
-                                {{/*                                <option value="{{$sort_type}}">{{$sort_name}}</option>*/}}
-                                {{/*                                {{if eq .Data.Filters.Sort $sort_type}}selected{{end}}*/}}
                             {{end}}
                         </select>
                     </div>
@@ -61,7 +73,7 @@
                         <!-- Previous Page Link -->
                         <li class="page-item {{if eq .Data.Pagination.CurrentPage 1}}disabled{{end}}">
                             <a class="page-link"
-                               href="{{if gt .Data.Pagination.CurrentPage 1}}?page={{.Data.Pagination.PrevPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{if ne .Data.Filters.Sort ""}}&sort={{.Data.Filters.Sort}}{{end}}{{else}}#{{end}}"
+                               href="{{if gt .Data.Pagination.CurrentPage 1}}?page={{.Data.Pagination.PrevPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.AudioCrafter ""}}&audio_crafter={{.Data.Filters.AudioCrafter}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{if ne $.Data.Filters.InstrumentID -1}}&instrument={{$.Data.Filters.InstrumentID}}{{end}}{{if ne .Data.Filters.Sort ""}}&sort={{.Data.Filters.Sort}}{{end}}{{else}}#{{end}}"
                                aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
@@ -71,14 +83,13 @@
                         {{range .Data.Pagination.PagesSequence}}
                             <li class="page-item {{if eq . $.Data.Pagination.CurrentPage}}active{{end}}">
                                 <a class="page-link"
-                                   href="?page={{.}}{{if ne $.Data.Filters.Title ""}}&title={{$.Data.Filters.Title}}{{end}}{{if ne $.Data.Filters.Artist ""}}&artist={{$.Data.Filters.Artist}}{{end}}{{if ne $.Data.Filters.EnsembleSize -1}}&ensembleSize={{$.Data.Filters.EnsembleSize}}{{end}}{{if ne $.Data.Filters.GenreID -1}}&genre={{$.Data.Filters.GenreID}}{{end}}{{if ne $.Data.Filters.Sort ""}}&sort={{$.Data.Filters.Sort}}{{end}}">{{.}}</a>
+                                   href="?page={{.}}{{if ne $.Data.Filters.Title ""}}&title={{$.Data.Filters.Title}}{{end}}{{if ne $.Data.Filters.Artist ""}}&artist={{$.Data.Filters.Artist}}{{end}}{{if ne $.Data.Filters.AudioCrafter ""}}&audio_crafter={{$.Data.Filters.AudioCrafter}}{{end}}{{if ne $.Data.Filters.EnsembleSize -1}}&ensembleSize={{$.Data.Filters.EnsembleSize}}{{end}}{{if ne $.Data.Filters.GenreID -1}}&genre={{$.Data.Filters.GenreID}}{{end}}{{if ne $.Data.Filters.InstrumentID -1}}&instrument={{$.Data.Filters.InstrumentID}}{{end}}{{if ne $.Data.Filters.Sort ""}}&sort={{$.Data.Filters.Sort}}{{end}}">{{.}}</a>
                             </li>
                         {{end}}
                         <!-- Next Page Link -->
                         <li class="page-item {{if eq .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}disabled{{end}}">
                             <a class="page-link"
-                               href="{{if lt .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}?page={{.Data.Pagination.NextPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{if ne .Data.Filters.Sort ""}}&sort={{.Data.Filters.Sort}}{{end}}{{else}}#{{end}}"
-                               aria-label="Next">
+                               href="{{if lt .Data.Pagination.CurrentPage .Data.Pagination.TotalPages}}?page={{.Data.Pagination.NextPage}}{{if ne .Data.Filters.Title ""}}&title={{.Data.Filters.Title}}{{end}}{{if ne .Data.Filters.Artist ""}}&artist={{.Data.Filters.Artist}}{{end}}{{if ne $.Data.Filters.AudioCrafter ""}}&audio_crafter={{$.Data.Filters.AudioCrafter}}{{end}}{{if ne .Data.Filters.EnsembleSize -1}}&ensembleSize={{.Data.Filters.EnsembleSize}}{{end}}{{if ne .Data.Filters.GenreID -1}}&genre={{.Data.Filters.GenreID}}{{end}}{{if ne $.Data.Filters.InstrumentID -1}}&instrument={{$.Data.Filters.InstrumentID}}{{end}}{{if ne .Data.Filters.Sort ""}}&sort={{.Data.Filters.Sort}}{{end}}{{else}}#{{end}}" aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
                         </li>
@@ -95,13 +106,11 @@
                                 <h5 class="card-title"><i class="fa fa-music" aria-hidden="true"></i> &nbsp;{{$element.Title}}</h5>
                                 <p class="card-label">Artist: <span class="text-white">{{$element.Artist}}</span>
                                 <p class="card-label">Title: <span class="text-white">{{$element.Title}}</span>
-                                </p>
-                                <p class="card-label">Ensemble size: <span
-                                            class="text-white">{{$element.EnsembleSizeString}}</span></p>
-                                <p class="card-label">Genre: <span class="text-white">{{$element.GenreName}}</span>
-                                </p>
-                                <p class="card-label">Uploader: <span
-                                            class="text-white">{{$element.UploaderName}}</span></p>
+                                <p class="card-label">Crafter: <span class="text-white">{{$element.AudioCrafter}}</span></p>
+                                <p class="card-label">Ensemble size: <span class="text-white">{{$element.EnsembleSizeString}}</span></p>
+                                <p class="card-label">Genre: <span class="text-white">{{$element.GenreName}}</span></p>
+                                <p class="card-label">Instruments: <span class="text-white">{{$element.InstrumentName}}</span></p>
+                                <p class="card-label">Uploader: <span class="text-white">{{$element.UploaderName}}</span></p>
                             </div>
                             <div class="card-footer">
                                 <div class="d-flex justify-content-between">

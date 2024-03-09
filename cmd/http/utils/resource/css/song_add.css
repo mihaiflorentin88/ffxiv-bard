@@ -29,3 +29,13 @@ button.btn.btn-dark {
     margin-left: auto;
     margin-right: auto;
 }
+
+.form-control {
+    margin-bottom: 6px;
+}
+.form-select {
+    margin-bottom: 6px;
+}
+label {
+    margin-bottom: 4px;
+}

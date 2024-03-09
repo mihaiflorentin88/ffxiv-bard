@@ -11,26 +11,6 @@ type InstrumentRepository struct {
 	driver contract.DatabaseDriverInterface
 }
 
-func diffInstruments(current, new []int) (toAdd, toRemove []int) {
-	currentMap := make(map[int]bool)
-	newMap := make(map[int]bool)
-	for _, id := range current {
-		currentMap[id] = true
-	}
-	for _, id := range new {
-		if !currentMap[id] {
-			toAdd = append(toAdd, id)
-		}
-		newMap[id] = true
-	}
-	for _, id := range current {
-		if !newMap[id] {
-			toRemove = append(toRemove, id)
-		}
-	}
-	return toAdd, toRemove
-}
-
 func NewInstrumentRepository(driver contract.DatabaseDriverInterface) contract.InstrumentRepositoryInterface {
 	return &InstrumentRepository{
 		driver: driver,
@@ -111,4 +91,24 @@ func (i *InstrumentRepository) FetchBySongID(songID int) (*[]dto.DatabaseInstrum
 		return nil, err
 	}
 	return &instruments, nil
+}
+
+func diffInstruments(current, new []int) (toAdd, toRemove []int) {
+	currentMap := make(map[int]bool)
+	newMap := make(map[int]bool)
+	for _, id := range current {
+		currentMap[id] = true
+	}
+	for _, id := range new {
+		if !currentMap[id] {
+			toAdd = append(toAdd, id)
+		}
+		newMap[id] = true
+	}
+	for _, id := range current {
+		if !newMap[id] {
+			toRemove = append(toRemove, id)
+		}
+	}
+	return toAdd, toRemove
 }

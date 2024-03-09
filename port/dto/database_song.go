@@ -12,6 +12,9 @@ type DatabaseSong struct {
 	Filename      string    `json:"filename" db:"filename"`
 	UploaderID    int64     `json:"uploader_id" db:"uploader_id"`
 	Status        int       `json:"status" db:"status"`
+	Source        string    `json:"source" db:"source"`
+	Note          string    `json:"note" db:"note"`
+	AudioCrafter  string    `json:"audio_crafter" db:"audio_crafter"`
 	StatusMessage string    `json:"status_message" db:"status_message"`
 	Checksum      string    `json:"checksum" db:"checksum"`
 	LockExpireTS  time.Time `json:"lock_expire_ts" db:"lock_expire_ts"`

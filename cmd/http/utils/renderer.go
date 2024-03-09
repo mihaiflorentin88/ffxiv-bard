@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"path/filepath"
 	"slices"
 )
 
@@ -16,6 +17,35 @@ var staticFS embed.FS
 
 func GetStaticFS() *embed.FS {
 	return &staticFS
+}
+
+type inMemoryAssets struct {
+	css map[string][]byte
+	js  map[string][]byte
+	img map[string][]byte
+}
+
+func loadAssets(root string) map[string][]byte {
+	assets := make(map[string][]byte)
+	err := fs.WalkDir(staticFS, root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			content, readErr := fs.ReadFile(staticFS, path)
+			if readErr != nil {
+				return readErr
+			}
+			// Adjust the path according to your routing needs
+			internalPath := path[len(root):]
+			assets[internalPath] = content
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("Failed to load assets: %v", err)
+	}
+	return assets
 }
 
 func getDefaultTemplates() []string {
@@ -99,20 +129,67 @@ func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 }
 
 func (r *renderer) RegisterStatic(router *gin.Engine) {
-	cssFS, err := fs.Sub(r.StaticFS, "resource/css")
-	if err != nil {
-		panic("Cannot parse the css")
-	}
-	jsFS, err := fs.Sub(r.StaticFS, "resource/js")
-	if err != nil {
-		panic("Cannot parse the js")
-	}
-	imgFS, err := fs.Sub(r.StaticFS, "resource/img")
-	if err != nil {
-		panic("Cannot parse the img")
-	}
+	cssAssets := loadAssets("resource/css")
+	jsAssets := loadAssets("resource/js")
+	imgAssets := loadAssets("resource/img")
 
-	router.StaticFS("/_resource/css", http.FS(cssFS))
-	router.StaticFS("/_resource/js", http.FS(jsFS))
-	router.StaticFS("/_resource/img", http.FS(imgFS))
+	router.GET("/_resource/css/*filepath", func(c *gin.Context) {
+		filepathStr := c.Param("filepath")
+		content, ok := cssAssets[filepathStr]
+		if !ok {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Data(http.StatusOK, "text/css", content)
+	})
+
+	router.GET("/_resource/js/*filepath", func(c *gin.Context) {
+		filepathStr := c.Param("filepath")
+		content, ok := jsAssets[filepathStr]
+		if !ok {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Data(http.StatusOK, "application/javascript", content)
+	})
+
+	router.GET("/_resource/img/*filepath", func(c *gin.Context) {
+		filepathStr := c.Param("filepath")
+		content, ok := imgAssets[filepathStr]
+		if !ok {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		mimeType := "application/octet-stream"
+
+		switch filepath.Ext(filepathStr) {
+		case ".png":
+			mimeType = "image/png"
+		case ".jpg", ".jpeg":
+			mimeType = "image/jpeg"
+		case ".gif":
+			mimeType = "image/gif"
+			// Add more cases as needed for different file types
+		}
+		c.Data(http.StatusOK, mimeType, content) // Use the correct MIME type
+	})
 }
+
+//func (r *renderer) RegisterStatic(router *gin.Engine) {
+//	cssFS, err := fs.Sub(r.StaticFS, "resource/css")
+//	if err != nil {
+//		panic("Cannot parse the css")
+//	}
+//	jsFS, err := fs.Sub(r.StaticFS, "resource/js")
+//	if err != nil {
+//		panic("Cannot parse the js")
+//	}
+//	imgFS, err := fs.Sub(r.StaticFS, "resource/img")
+//	if err != nil {
+//		panic("Cannot parse the img")
+//	}
+//
+//	router.StaticFS("/_resource/css", http.FS(cssFS))
+//	router.StaticFS("/_resource/js", http.FS(jsFS))
+//	router.StaticFS("/_resource/img", http.FS(imgFS))
+//}

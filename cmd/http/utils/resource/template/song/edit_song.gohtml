@@ -6,13 +6,22 @@
                 <form action="/song/{{ .Data.ID }}/edit" method="post" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="title">Title:</label>
-                        <input type="text" class="form-control" id="title" value="{{ .Data.Title }}" name="title"
-                               required>
+                        <input type="text" class="form-control" id="title" value="{{ .Data.Title }}" name="title" required>
                     </div>
                     <div class="form-group">
                         <label for="artist">Artist:</label>
                         <input type="text" class="form-control" id="artist" value="{{ .Data.Artist }}" name="artist"
                                required>
+                    </div>
+                    <div class="form-group">
+                        <label for="crafter"><i class="fa fa-question-circle" data-toggle="tooltip" title="Enter the name of the individual or group credited with creating the MIDI arrangement for the song." aria-hidden="true"></i> Crafter:
+                        </label>
+                        <input type="text" class="form-control" id="crafter" name="crafter" value="{{ .Data.AudioCrafter }}" placeholder="Name of the MIDI crafter">
+                    </div>
+                    <div class="form-group">
+                        <label for="source"><i class="fa fa-question-circle" data-toggle="tooltip" title="Source: Arrangement, MIDI, or Transcription Reference" aria-hidden="true"></i> Source:
+                        </label>
+                        <input type="text" class="form-control" id="source" name="source" value="{{ .Data.Source }}" placeholder="Source">
                     </div>
                     <div class="form-group">
                         <label for="ensembleSize">Ensemble size:</label>
@@ -38,6 +47,26 @@
                                     {{$element.Name}}</option>
                             {{ end }}
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="instrument multiple-select-clear-field">Select instruments (multiselect):</label>
+                        <select class="form-select" name="instrument" id="instrument multiple-select-clear-field"
+                                data-placeholder="Choose anything" multiple required>
+                            {{ $selectedInstruments := .Data.Instrument }}
+                            {{range $element := .Data.AllInstruments}}
+                                <option value="{{$element.ID}}"
+                                        {{range $selectedInstrument := $selectedInstruments }}
+                                            {{if eq $selectedInstrument.ID $element.ID}}
+                                                selected
+                                            {{end}}
+                                        {{end}}>
+                                    {{$element.Name}}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="note">Edit note</label>
+                        <textarea class="form-control" name="note" id="note" maxlength="150" placeholder="Add a note...">{{.Data.Note}}</textarea>
                     </div>
                     <button type="submit" class="btn btn-dark" id="filterBtn">Save</button>
                 </form>

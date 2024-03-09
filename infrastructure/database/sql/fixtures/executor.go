@@ -23,6 +23,7 @@ func (f Fixture) GetFixtureFiles(directory string) []string {
 		"infrastructure/database/sql/fixtures/files/song_genre.yml",
 		"infrastructure/database/sql/fixtures/files/rating.yml",
 		"infrastructure/database/sql/fixtures/files/comment.yml",
+		"infrastructure/database/sql/fixtures/files/song_instrument.yml",
 	}
 }
 

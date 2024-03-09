@@ -52,20 +52,19 @@ func GetAuthRouter() contract.RouterInterface {
 }
 
 func GetNewSubmitSongForm() form.SubmitSongForm {
-	return form.NewSubmitSongForm(GetSongRepository(), GetGenreRepository(), GetMidiProcessor(), *GetEmptyUser(), *GetEmptyGenre(), *GetEmptyRating(), *GetEmptyComment())
+	return form.NewSubmitSongForm(GetSongRepository(), GetGenreRepository(), GetMidiProcessor(), *GetEmptyUser(), *GetEmptyGenre(), *GetEmptyRating(), *GetEmptyComment(), *GetEmptyInstrument())
 }
 
 func GetNewSongListingForm() form.SongList {
-	return form.NewSongList(GetSongRepository(), GetGenreRepository(), GetRatingRepository(), GetSpotifyClient())
+	return form.NewSongList(GetSongRepository(), GetGenreRepository(), GetRatingRepository(), GetInstrumentRepository())
 }
 
 func GetNewSongFormView() form.NewSongFormView {
-	return form.NewAddNewSongFormView(GetGenreRepository())
+	return form.NewAddNewSongFormView(GetGenreRepository(), GetInstrumentRepository())
 }
 
 func GetSongDetailsForm() form.SongDetails {
-	commentRepository := GetCommentRepository()
-	return form.NewSongDetailsForm(GetGenreRepository(), &commentRepository, GetRatingRepository(), GetEmptySong())
+	return form.NewSongDetailsForm(GetGenreRepository(), GetCommentRepository(), GetRatingRepository(), GetInstrumentRepository(), GetEmptySong())
 }
 
 func GetSubmitSongRatingForm() form.SubmitSongRatingForm {
@@ -77,5 +76,5 @@ func GetSubmitSongCommentForm() form.SubmitCommentForm {
 }
 
 func GetSongEditViewForm() form.SongEditForm {
-	return form.NewSongEditForm(GetGenreRepository(), GetEmptySong())
+	return form.NewSongEditForm(GetGenreRepository(), GetInstrumentRepository(), GetEmptySong())
 }
