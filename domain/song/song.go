@@ -80,7 +80,7 @@ type Song struct {
 	Source          string
 	Note            string
 	AudioCrafter    string
-	Uploader        *user.User
+	Uploader        user.User
 	Comments        []Comment
 	status          Status
 	statusMessage   string
@@ -100,7 +100,7 @@ func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem cont
 	return &Song{
 		SongProcessor:   songProcessor,
 		Filesystem:      filesystem,
-		Uploader:        emptyUser,
+		Uploader:        *emptyUser,
 		emptyRating:     emptyRating,
 		emptyComment:    emptyComment,
 		emptyGenre:      emptyGenre,
@@ -382,9 +382,9 @@ func FromDatabaseDTO(song *Song, databaseSong *dto.DatabaseSong) (*Song, error) 
 	if err != nil {
 		return song, err
 	}
-	if song.Uploader == nil || song.Uploader.StorageID == 0 {
+	if (song.Uploader == user.User{}) || song.Uploader.StorageID == 0 {
 		song.emptyUser.StorageID = databaseSong.UploaderID
-		song.Uploader = song.emptyUser
+		song.Uploader = *song.emptyUser
 	}
 	err = song.Uploader.HydrateByID()
 	if err != nil {

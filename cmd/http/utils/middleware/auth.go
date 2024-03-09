@@ -12,10 +12,10 @@ const BearerSchema = "Bearer "
 
 type AuthMiddleware struct {
 	oauth contract.Oauth
-	user  *user.User
+	user  user.User
 }
 
-func NewJwtMiddleware(oauth contract.Oauth, user *user.User) AuthMiddleware {
+func NewJwtMiddleware(oauth contract.Oauth, user user.User) AuthMiddleware {
 	return AuthMiddleware{
 		oauth: oauth,
 		user:  user,

@@ -17,7 +17,7 @@ func NewSubmitSongRatingForm(ratingRepository contract.RatingRepositoryInterface
 	}
 }
 
-func (p *SubmitSongRatingForm) Submit(loggedUser *user.User, songID int, rating int) error {
+func (p *SubmitSongRatingForm) Submit(loggedUser user.User, songID int, rating int) error {
 	existingRating, _ := p.ratingRepository.FindByUserAndSong(songID, loggedUser.StorageID)
 	if existingRating == 0 {
 		err := p.ratingRepository.InsertRating(songID, loggedUser.StorageID, rating)

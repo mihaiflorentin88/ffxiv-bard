@@ -28,7 +28,7 @@ type SongEditForm struct {
 	genreRepository      contract.GenreRepositoryInterface
 	instrumentRepository contract.InstrumentRepositoryInterface
 	song                 *song.Song
-	loggedUser           *user.User
+	loggedUser           user.User
 }
 
 func NewSongEditForm(genreRepository contract.GenreRepositoryInterface, instrumentRepository contract.InstrumentRepositoryInterface, song *song.Song) SongEditForm {
@@ -48,26 +48,7 @@ func (s *SongEditForm) ContainsGenre(id int) bool {
 	return false
 }
 
-//func (s *SongEditForm) resetForm() {
-//	s.ID = 0
-//	s.Title = ""
-//	s.Artist = ""
-//	s.Source = ""
-//	s.Note = ""
-//	s.AudioCrafter = ""
-//	s.Filename = ""
-//	s.EnsembleSize = 0
-//	s.Instrument = []Instrument{}
-//	s.CanDelete = false
-//	s.EnsembleSizeString = ""
-//	s.AllEnsembleSizes = make(map[int]string)
-//	s.Genre = []Genre{}
-//	s.AllGenres = []dto.DatabaseGenre{}
-//	s.AllInstruments = []dto.DatabaseInstrument{}
-//	s.loggedUser = &user.User{}
-//}
-
-func (s *SongEditForm) Fetch(songID int, loggedUser *user.User) (SongEditForm, error) {
+func (s *SongEditForm) Fetch(songID int, loggedUser user.User) (SongEditForm, error) {
 	//s.resetForm()
 	_, err := s.song.LoadByID(songID)
 	if err != nil {
@@ -110,7 +91,7 @@ func (s *SongEditForm) Fetch(songID int, loggedUser *user.User) (SongEditForm, e
 	return *s, nil
 }
 
-func (s *SongEditForm) HandleSubmittedForm(songID int, title string, artist string, ensembleSize int, genreIDs []int, loggedUser *user.User, source string, note string, audioCrafter string, instrumentIDs []int) error {
+func (s *SongEditForm) HandleSubmittedForm(songID int, title string, artist string, ensembleSize int, genreIDs []int, loggedUser user.User, source string, note string, audioCrafter string, instrumentIDs []int) error {
 	//s.resetForm()
 	_, err := s.song.LoadByID(songID)
 	if err != nil {

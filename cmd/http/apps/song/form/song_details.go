@@ -52,7 +52,7 @@ type SongDetails struct {
 	instrumentRepository contract.InstrumentRepositoryInterface
 	ratingRepository     contract.RatingRepositoryInterface
 	song                 song.Song
-	loggedUser           *user.User
+	loggedUser           user.User
 }
 
 func (s *SongDetails) GetAvailableStars() []int {
@@ -109,8 +109,8 @@ func (s *SongDetails) hydrate() {
 		}
 		s.Instrument = append(s.Instrument, renderedInstrument)
 	}
-	if s.loggedUser != nil {
-		if s.loggedUser.StorageID == s.song.Uploader.StorageID || s.song.Uploader.IsAdmin {
+	if (s.loggedUser != user.User{}) {
+		if s.loggedUser.StorageID == s.song.Uploader.StorageID || s.loggedUser.IsAdmin {
 			s.CanEdit = true
 		}
 	}
@@ -121,8 +121,8 @@ func (s *SongDetails) hydrate() {
 			Status:    comment.Status,
 			Content:   comment.Content,
 		}
-		if s.loggedUser != nil {
-			if s.loggedUser.StorageID == comment.Author.StorageID || s.song.Uploader.IsAdmin {
+		if (s.loggedUser != user.User{}) {
+			if s.loggedUser.StorageID == comment.Author.StorageID || s.loggedUser.IsAdmin {
 				renderedComment.CanEdit = true
 			}
 		}
@@ -130,7 +130,7 @@ func (s *SongDetails) hydrate() {
 		renderedComment.UpdatedAt = comment.Date.UpdatedAt.Format(dateLayout)
 		comments = append(comments, renderedComment)
 	}
-	if s.loggedUser != nil {
+	if (s.loggedUser != user.User{}) {
 		s.LoggedUserRating, _ = s.ratingRepository.FindByUserAndSong(s.song.StorageID, s.loggedUser.StorageID)
 	}
 	s.Comments = comments

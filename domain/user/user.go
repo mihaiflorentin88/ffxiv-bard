@@ -214,11 +214,11 @@ func FromDatabaseUserDTO(userDTO *dto.DatabaseUser, user *User, userRepository c
 	return user
 }
 
-func FromSession(sessionUser interface{}) (*User, error) {
+func FromSession(sessionUser interface{}) (User, error) {
 	if sessionUser != nil {
-		if userObj, ok := sessionUser.(*User); ok {
+		if userObj, ok := sessionUser.(User); ok {
 			return userObj, nil
 		}
 	}
-	return nil, errors.New("session user is not of the correct type")
+	return User{}, errors.New("session user is not of the correct type")
 }

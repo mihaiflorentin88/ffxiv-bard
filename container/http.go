@@ -24,7 +24,7 @@ func GetGinRouter() *gin.Engine {
 }
 
 func GetAuthMiddleware() middleware.AuthMiddleware {
-	return middleware.NewJwtMiddleware(GetDiscordAuth(), GetEmptyUser())
+	return middleware.NewJwtMiddleware(GetDiscordAuth(), *GetEmptyUser())
 }
 
 func GetSongController() song.Controller {

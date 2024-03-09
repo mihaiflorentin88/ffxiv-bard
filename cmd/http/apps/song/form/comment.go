@@ -17,7 +17,7 @@ func NewSubmitCommentForm(commentRepository contract.CommentRepositoryInterface)
 	}
 }
 
-func (f SubmitCommentForm) Submit(loggedUser *user.User, songID int, comment string) error {
+func (f SubmitCommentForm) Submit(loggedUser user.User, songID int, comment string) error {
 	_, err := f.commentRepository.InsertComment(loggedUser.StorageID, songID, comment)
 	if err != nil {
 		return errors.New(fmt.Sprintf("cannot submit comment. Reason %s", err))
@@ -25,7 +25,7 @@ func (f SubmitCommentForm) Submit(loggedUser *user.User, songID int, comment str
 	return nil
 }
 
-func (f SubmitCommentForm) SubmitUpdate(loggedUser *user.User, comment string, commentID int) error {
+func (f SubmitCommentForm) SubmitUpdate(loggedUser user.User, comment string, commentID int) error {
 	oldComment, err := f.commentRepository.FindByID(commentID)
 	if err != nil {
 		return err
