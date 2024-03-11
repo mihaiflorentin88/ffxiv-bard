@@ -1,15 +1,14 @@
 package maincontroller
 
 import (
-	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
 )
 
 type Router struct {
-	Controller *Controller
+	Controller Controller
 }
 
-func NewMainRouter(controller *Controller) contract.RouterInterface {
+func NewMainRouter(controller Controller) *Router {
 	return &Router{
 		Controller: controller,
 	}

@@ -1,15 +1,14 @@
 package auth
 
 import (
-	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
 )
 
 type Router struct {
-	Controller *Controller
+	Controller Controller
 }
 
-func NewAuthRouter(controller *Controller) contract.RouterInterface {
+func NewAuthRouter(controller Controller) *Router {
 	return &Router{
 		Controller: controller,
 	}

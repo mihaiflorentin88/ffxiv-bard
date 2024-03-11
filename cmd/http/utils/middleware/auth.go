@@ -15,7 +15,7 @@ type AuthMiddleware struct {
 	user  user.User
 }
 
-func NewJwtMiddleware(oauth contract.Oauth, user user.User) AuthMiddleware {
+func NewAuthMiddleware(oauth contract.Oauth, user user.User) AuthMiddleware {
 	return AuthMiddleware{
 		oauth: oauth,
 		user:  user,

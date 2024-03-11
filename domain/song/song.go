@@ -35,7 +35,7 @@ const ( // If you change anything here. You will also need to change the Ensembl
 	Octet
 )
 
-var EnsembleSizes []EnsembleSize = []EnsembleSize{
+var EnsembleSizes = []EnsembleSize{
 	Solo,    // 0
 	Duet,    // 1
 	Trio,    // 2
@@ -55,7 +55,7 @@ func GetEnsembleSizeFromInt(size int) (EnsembleSize, error) {
 
 func GetDetailedEnsembleString() map[int]string {
 	var result = make(map[int]string)
-	for i := range 8 { // don't mind the ide. this is syntax added in golang 1.22. the ide just didn had time to catch up with it.
+	for i := range 8 {
 		result[i] = EnsembleString(i)
 	}
 	return result
@@ -80,7 +80,7 @@ type Song struct {
 	Source          string
 	Note            string
 	AudioCrafter    string
-	Uploader        user.User
+	Uploader        *user.User
 	Comments        []Comment
 	status          Status
 	statusMessage   string
@@ -89,18 +89,18 @@ type Song struct {
 	Filesystem      contract.FileSystemInterface
 	Date            date.Date
 	songRepository  contract.SongRepositoryInterface
-	emptyRating     *Rating
-	emptyComment    *Comment
-	emptyGenre      *Genre
-	emptyUser       *user.User
-	emptyInstrument *Instrument
+	emptyRating     Rating
+	emptyComment    Comment
+	emptyGenre      Genre
+	emptyUser       user.User
+	emptyInstrument Instrument
 }
 
-func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface, emptyUser *user.User, emptyRating *Rating, emptyComment *Comment, emptyGenre *Genre, emptyInstrument *Instrument, songRepository contract.SongRepositoryInterface) *Song {
-	return &Song{
+func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem contract.FileSystemInterface, emptyUser user.User, emptyRating Rating, emptyComment Comment, emptyGenre Genre, emptyInstrument Instrument, songRepository contract.SongRepositoryInterface) Song {
+	return Song{
 		SongProcessor:   songProcessor,
 		Filesystem:      filesystem,
-		Uploader:        *emptyUser,
+		Uploader:        &emptyUser,
 		emptyRating:     emptyRating,
 		emptyComment:    emptyComment,
 		emptyGenre:      emptyGenre,
@@ -111,7 +111,7 @@ func NewEmptySong(songProcessor contract.SongProcessorInterface, filesystem cont
 }
 
 func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRepositoryInterface, genreRepository contract.GenreRepositoryInterface,
-	songProcessor contract.SongProcessorInterface, emptyUser *user.User, emptyRating *Rating, emptyGenre *Genre, emptyComment *Comment, emptyInstrument *Instrument) (*Song, error) {
+	songProcessor contract.SongProcessorInterface, emptyUser user.User, emptyRating Rating, emptyGenre Genre, emptyComment Comment, emptyInstrument Instrument) (*Song, error) {
 	song := Song{
 		Title:           newSongDto.Title,
 		Artist:          newSongDto.Artist,
@@ -145,10 +145,11 @@ func FromNewSongForm(newSongDto dto.NewSongForm, songRepository contract.SongRep
 	if err != nil {
 		return &song, errors.New(fmt.Sprintf("one of the genres might not be valid. Error %s", err))
 	}
-	song.Uploader, err = user.FromSession(newSongDto.User)
+	uploader, err := user.FromSession(newSongDto.User)
 	if err != nil {
-		return &song, errors.New("Song uploader is not of the correct type")
+		return &song, errors.New("song uploader is not of the correct type")
 	}
+	song.Uploader = &uploader
 	song.Genre = FromGenresDatabaseDTO(genresDTO)
 	song.SongProcessor = songProcessor
 	song.Filename = song.SongProcessor.GenerateUniqueFilename()
@@ -305,24 +306,24 @@ func (s *Song) GetFilePath() string {
 }
 
 func (s *Song) IsCorrectlyInstantiated() error {
-	if s.emptyUser == nil {
+	if (s.emptyUser == user.User{}) {
 		return errors.New("song.Song was not correctly instantiated. Reason: Missing User")
 	}
-	if s.emptyGenre == nil {
+	if (s.emptyGenre == Genre{}) {
 		return errors.New("song.Song was not correctly instantiated. Reason: Missing Genre")
 	}
-	if s.emptyRating == nil {
+	if (s.emptyRating == Rating{}) {
 		return errors.New("song.Song was not correctly instantiated. Reason: Missing Rating")
 	}
 
-	if s.emptyComment == nil {
+	if (s.emptyComment == Comment{}) {
 		return errors.New("song.Song was not correctly instantiated. Reason: Missing Comment")
 	}
 
 	if s.songRepository == nil {
 		return errors.New("song.Song was not correctly instantiated")
 	}
-	if s.emptyInstrument == nil {
+	if (s.emptyInstrument == Instrument{}) {
 		return errors.New("song.Song was not correctly instantiated. Reason: Missing Instrument")
 	}
 	return nil
@@ -382,9 +383,9 @@ func FromDatabaseDTO(song *Song, databaseSong *dto.DatabaseSong) (*Song, error) 
 	if err != nil {
 		return song, err
 	}
-	if (song.Uploader == user.User{}) || song.Uploader.StorageID == 0 {
+	if (song.Uploader == nil) || song.Uploader.StorageID == 0 {
 		song.emptyUser.StorageID = databaseSong.UploaderID
-		song.Uploader = *song.emptyUser
+		song.Uploader = &song.emptyUser
 	}
 	err = song.Uploader.HydrateByID()
 	if err != nil {

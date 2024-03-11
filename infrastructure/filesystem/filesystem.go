@@ -1,13 +1,12 @@
 package filesystem
 
 import (
-	"ffxvi-bard/port/contract"
 	"os"
 )
 
 type FileSystem struct{}
 
-func NewFileSystem() contract.FileSystemInterface {
+func NewFileSystem() *FileSystem {
 	return &FileSystem{}
 }
 

@@ -16,8 +16,8 @@ type MidiProcessor struct {
 	filesystem      contract.FileSystemInterface
 }
 
-func NewMidiProcessor(UnprocessedPath string, FilepathProcessed string, filesystem contract.FileSystemInterface) *MidiProcessor {
-	return &MidiProcessor{
+func NewMidiProcessor(UnprocessedPath string, FilepathProcessed string, filesystem contract.FileSystemInterface) MidiProcessor {
+	return MidiProcessor{
 		UnprocessedPath: UnprocessedPath,
 		ProcessedPath:   FilepathProcessed,
 		filesystem:      filesystem}

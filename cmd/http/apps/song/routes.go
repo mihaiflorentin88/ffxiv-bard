@@ -2,7 +2,6 @@ package song
 
 import (
 	"ffxvi-bard/cmd/http/utils/middleware"
-	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +10,7 @@ type Router struct {
 	JWTMiddleware middleware.AuthMiddleware
 }
 
-func NewSongRouter(controller Controller, JWTMiddleware middleware.AuthMiddleware) contract.RouterInterface {
+func NewSongRouter(controller Controller, JWTMiddleware middleware.AuthMiddleware) *Router {
 	return &Router{
 		Controller:    controller,
 		JWTMiddleware: JWTMiddleware,

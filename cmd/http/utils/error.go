@@ -2,7 +2,6 @@ package utils
 
 import (
 	"embed"
-	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
 	"html/template"
 	"log"
@@ -18,8 +17,8 @@ type ErrorHandler struct {
 	StaticFS  *embed.FS
 }
 
-func NewHttpErrorHandler() contract.HttpErrorHandlerInterface {
-	return &ErrorHandler{StaticFS: &staticFS}
+func NewHttpErrorHandler() ErrorHandler {
+	return ErrorHandler{StaticFS: &staticFS}
 }
 
 func (h *ErrorHandler) GetMessage() string {

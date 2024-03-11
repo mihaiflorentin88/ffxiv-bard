@@ -1,16 +1,16 @@
 package database
 
 import (
-	"ffxvi-bard/port/contract"
+	database "ffxvi-bard/infrastructure/database/sql"
 	"ffxvi-bard/port/dto"
 	"fmt"
 )
 
 type CommentRepository struct {
-	driver contract.DatabaseDriverInterface
+	driver *database.SqliteDriver
 }
 
-func NewCommentRepository(driver contract.DatabaseDriverInterface) contract.CommentRepositoryInterface {
+func NewCommentRepository(driver *database.SqliteDriver) *CommentRepository {
 	return &CommentRepository{
 		driver: driver,
 	}

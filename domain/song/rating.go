@@ -15,7 +15,7 @@ type Rating struct {
 	rating           int
 	Date             date.Date
 	ratingRepository contract.RatingRepositoryInterface
-	emptyUser        *user.User
+	emptyUser        user.User
 }
 
 func NewSongRanting(songID int, authorID int, rating int) (*Rating, error) {
@@ -25,8 +25,8 @@ func NewSongRanting(songID int, authorID int, rating int) (*Rating, error) {
 	return &Rating{SongID: songID, AuthorID: authorID, rating: rating}, nil
 }
 
-func NewEmptyRating(ratingRepository contract.RatingRepositoryInterface, emptyUser *user.User) *Rating {
-	return &Rating{
+func NewEmptyRating(ratingRepository contract.RatingRepositoryInterface, emptyUser user.User) Rating {
+	return Rating{
 		ratingRepository: ratingRepository,
 		emptyUser:        emptyUser,
 	}

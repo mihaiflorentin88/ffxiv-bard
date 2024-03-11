@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 
-	"ffxvi-bard/port/contract"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	_ "modernc.org/sqlite"
 )
@@ -21,17 +20,16 @@ var migrations embed.FS
 // Convert embedded files to http.FileSystem
 var httpFS http.FileSystem = http.FS(migrations)
 
-type migrationDriver struct {
+type MigrationDriver struct {
 	database string
 	path     string
 }
 
-// NewMigrationDriver creates a new instance of the migration driver
-func NewMigrationDriver(config *config.DatabaseConfig) contract.SqlMigrationDriverInterface {
-	return &migrationDriver{database: config.Database, path: config.Path}
+func NewMigrationDriver(config *config.DatabaseConfig) *MigrationDriver {
+	return &MigrationDriver{database: config.Database, path: config.Path}
 }
 
-func (d *migrationDriver) connection() (*sql.DB, error) {
+func (d *MigrationDriver) connection() (*sql.DB, error) {
 	db, err := sql.Open(d.database, d.path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
@@ -39,7 +37,7 @@ func (d *migrationDriver) connection() (*sql.DB, error) {
 	return db, nil
 }
 
-func (d *migrationDriver) Execute(commandType string) {
+func (d *MigrationDriver) Execute(commandType string) {
 	db, err := d.connection()
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

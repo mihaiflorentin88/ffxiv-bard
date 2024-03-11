@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"ffxvi-bard/config"
-	"ffxvi-bard/port/contract"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ravener/discord-oauth2"
@@ -13,18 +12,18 @@ import (
 	"time"
 )
 
-type discordOauth struct {
+type DiscordOauth struct {
 	config *config.DiscordConfig
 	auth   *oauth2.Config
 	state  string
 	jwt    *jwt.Token
 }
 
-func NewDiscordOauth(config *config.DiscordConfig) contract.Oauth {
-	return &discordOauth{config: config}
+func NewDiscordOauth(config *config.DiscordConfig) *DiscordOauth {
+	return &DiscordOauth{config: config}
 }
 
-func (d *discordOauth) Auth() *oauth2.Config {
+func (d *DiscordOauth) Auth() *oauth2.Config {
 	if d.auth != nil {
 		return d.auth
 	}
@@ -38,7 +37,7 @@ func (d *discordOauth) Auth() *oauth2.Config {
 	return d.auth
 }
 
-func (d *discordOauth) GetStateToken() (string, error) {
+func (d *DiscordOauth) GetStateToken() (string, error) {
 	if d.state != "" {
 		return d.state, nil
 	}
@@ -52,7 +51,7 @@ func (d *discordOauth) GetStateToken() (string, error) {
 	return state, nil
 }
 
-func (d *discordOauth) GenerateJWT(username string) *jwt.Token {
+func (d *DiscordOauth) GenerateJWT(username string) *jwt.Token {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": username,
 		"exp":     time.Now().Add(time.Hour * 72).Unix(),
@@ -61,7 +60,7 @@ func (d *discordOauth) GenerateJWT(username string) *jwt.Token {
 	return token
 }
 
-func (d *discordOauth) EncodeJWT(token *jwt.Token) (string, error) {
+func (d *DiscordOauth) EncodeJWT(token *jwt.Token) (string, error) {
 	tokenString, err := token.SignedString([]byte(d.config.JwtSecret))
 	if err != nil {
 		return "", err
@@ -69,28 +68,7 @@ func (d *discordOauth) EncodeJWT(token *jwt.Token) (string, error) {
 	return tokenString, nil
 }
 
-//func (d *discordOauth) DecodeJWT(tokenString string) (string, error) {
-//	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-//			return nil, errors.New("unexpected signing method")
-//		}
-//		return d.config.JwtSecret, nil
-//	})
-//	if err != nil {
-//		return "", errors.New(fmt.Sprintf("cannot verify token signature. Reason: %s", err))
-//	}
-//
-//	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-//		userID, ok := claims["user_id"].(string) // Ensure to safely type assert; 'sub' is a commonly used claim for the subject (or UserID)
-//		if !ok {
-//			return "", errors.New("UserID claim ('sub') not found")
-//		}
-//		return userID, nil
-//	}
-//	return "", errors.New("invalid token")
-//}
-
-func (d *discordOauth) DecodeJWT(tokenString string) (string, error) {
+func (d *DiscordOauth) DecodeJWT(tokenString string) (string, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

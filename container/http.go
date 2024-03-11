@@ -7,74 +7,182 @@ import (
 	"ffxvi-bard/cmd/http/apps/song/form"
 	"ffxvi-bard/cmd/http/utils"
 	"ffxvi-bard/cmd/http/utils/middleware"
-	"ffxvi-bard/port/contract"
 	"github.com/gin-gonic/gin"
 )
 
-func GetErrorHandler() contract.HttpErrorHandlerInterface {
-	return utils.NewHttpErrorHandler()
+type HttpContainer struct {
+	errorHandler          *utils.ErrorHandler
+	httpRenderer          *utils.Renderer
+	authMiddleware        *middleware.AuthMiddleware
+	songController        *song.Controller
+	mainController        *maincontroller.Controller
+	authController        *auth.Controller
+	mainRouter            *maincontroller.Router
+	songRouter            *song.Router
+	authRouter            *auth.Router
+	ginRouter             *gin.Engine
+	formSongSubmit        *form.SubmitSongForm
+	formSongListing       *form.SongList
+	formNewSongFormView   *form.NewSongFormView
+	formSongDetails       *form.SongDetails
+	formSongEdit          *form.SongEditForm
+	formSongRating        *form.SubmitSongRatingForm
+	formSongCommentSubmit *form.SubmitCommentForm
+	formSongEditView      *form.SongEditForm
 }
 
-func GetHttpRenderer() contract.HttpRenderer {
-	return utils.NewRenderer(GetErrorHandler())
+func (s *ServiceContainer) GetErrorHandler() utils.ErrorHandler {
+	if s.http.errorHandler != nil {
+		return *s.http.errorHandler
+	}
+	errHandler := utils.NewHttpErrorHandler()
+	s.http.errorHandler = &errHandler
+	return errHandler
 }
 
-func GetGinRouter() *gin.Engine {
-	return gin.Default()
+func (s *ServiceContainer) GetHttpRenderer() utils.Renderer {
+	if s.http.httpRenderer != nil {
+		return *s.http.httpRenderer
+	}
+	renderer := utils.NewRenderer(s.GetErrorHandler())
+	s.http.httpRenderer = &renderer
+	return renderer
 }
 
-func GetAuthMiddleware() middleware.AuthMiddleware {
-	return middleware.NewJwtMiddleware(GetDiscordAuth(), *GetEmptyUser())
+func (s *ServiceContainer) GetGinRouter() *gin.Engine {
+	if s.http.ginRouter != nil {
+		return s.http.ginRouter
+	}
+	ginRouter := gin.Default()
+	s.http.ginRouter = ginRouter
+	return ginRouter
 }
 
-func GetSongController() song.Controller {
-	return song.NewSongController(*GetEmptySong(), GetErrorHandler(), GetHttpRenderer(), GetNewSubmitSongForm(), GetNewSongListingForm(), GetNewSongFormView(), GetSongDetailsForm(), GetSubmitSongRatingForm(), GetSubmitSongCommentForm(), GetSongEditViewForm())
+func (s *ServiceContainer) GetAuthMiddleware() middleware.AuthMiddleware {
+	if s.http.authMiddleware != nil {
+		return *s.http.authMiddleware
+	}
+	authMiddleware := middleware.NewAuthMiddleware(s.GetDiscordAuth(), s.GetEmptyUser())
+	s.http.authMiddleware = &authMiddleware
+	return authMiddleware
 }
 
-func GetMainController() *maincontroller.Controller {
-	return maincontroller.NewMainController(GetErrorHandler(), GetHttpRenderer())
+func (s *ServiceContainer) GetSongController() song.Controller {
+	if s.http.songController != nil {
+		return *s.http.songController
+	}
+
+	songController := song.NewSongController(s.GetEmptySong(), s.GetErrorHandler(), s.GetHttpRenderer(), s.GetNewSubmitSongForm(), s.GetNewSongListingForm(), s.GetNewSongFormView(), s.GetSongDetailsForm(), s.GetSubmitSongRatingForm(), s.GetSubmitSongCommentForm(), s.GetSongEditViewForm())
+	s.http.songController = &songController
+	return songController
 }
 
-func GetSongRouter() contract.RouterInterface {
-	return song.NewSongRouter(GetSongController(), GetAuthMiddleware())
+func (s *ServiceContainer) GetMainController() maincontroller.Controller {
+	if s.http.mainController != nil {
+		return *s.http.mainController
+	}
+	mainController := maincontroller.NewMainController(s.GetErrorHandler(), s.GetHttpRenderer())
+	s.http.mainController = &mainController
+	return mainController
 }
 
-func getAuthController() *auth.Controller {
-	return auth.NewAuthController(GetErrorHandler(), GetHttpRenderer(), GetDiscordAuth(), GetUserRepository())
+func (s *ServiceContainer) GetSongRouter() *song.Router {
+	if s.http.songRouter != nil {
+		return s.http.songRouter
+
+	}
+	songRouter := song.NewSongRouter(s.GetSongController(), s.GetAuthMiddleware())
+	s.http.songRouter = songRouter
+	return songRouter
 }
 
-func GetMainRouter() contract.RouterInterface {
-	return maincontroller.NewMainRouter(GetMainController())
+func (s *ServiceContainer) getAuthController() auth.Controller {
+	if s.http.authController != nil {
+		return *s.http.authController
+	}
+	authController := auth.NewAuthController(s.GetErrorHandler(), s.GetHttpRenderer(), s.GetDiscordAuth(), s.GetUserRepository())
+	s.http.authController = &authController
+	return authController
 }
 
-func GetAuthRouter() contract.RouterInterface {
-	return auth.NewAuthRouter(getAuthController())
+func (s *ServiceContainer) GetMainRouter() *maincontroller.Router {
+	if s.http.mainRouter != nil {
+		return s.http.mainRouter
+	}
+	mainRouter := maincontroller.NewMainRouter(s.GetMainController())
+	s.http.mainRouter = mainRouter
+	return mainRouter
 }
 
-func GetNewSubmitSongForm() form.SubmitSongForm {
-	return form.NewSubmitSongForm(GetSongRepository(), GetGenreRepository(), GetMidiProcessor(), *GetEmptyUser(), *GetEmptyGenre(), *GetEmptyRating(), *GetEmptyComment(), *GetEmptyInstrument())
+func (s *ServiceContainer) GetAuthRouter() *auth.Router {
+	if s.http.authRouter != nil {
+		return s.http.authRouter
+	}
+	authRouter := auth.NewAuthRouter(s.getAuthController())
+	s.http.authRouter = authRouter
+	return authRouter
 }
 
-func GetNewSongListingForm() form.SongList {
-	return form.NewSongList(GetSongRepository(), GetGenreRepository(), GetRatingRepository(), GetInstrumentRepository())
+func (s *ServiceContainer) GetNewSubmitSongForm() form.SubmitSongForm {
+	if s.http.formSongSubmit != nil {
+		return *s.http.formSongSubmit
+	}
+	songSubmitForm := form.NewSubmitSongForm(s.GetSongRepository(), s.GetGenreRepository(), s.GetMidiProcessor(), s.GetEmptyUser(), s.GetEmptyGenre(), s.GetEmptyRating(), s.GetEmptyComment(), s.GetEmptyInstrument())
+	s.http.formSongSubmit = &songSubmitForm
+	return songSubmitForm
 }
 
-func GetNewSongFormView() form.NewSongFormView {
-	return form.NewAddNewSongFormView(GetGenreRepository(), GetInstrumentRepository())
+func (s *ServiceContainer) GetNewSongListingForm() form.SongList {
+	if s.http.formSongListing != nil {
+		return *s.http.formSongListing
+	}
+	songListingForm := form.NewSongList(s.GetSongRepository(), s.GetGenreRepository(), s.GetRatingRepository(), s.GetInstrumentRepository())
+	s.http.formSongListing = &songListingForm
+	return songListingForm
 }
 
-func GetSongDetailsForm() form.SongDetails {
-	return form.NewSongDetailsForm(GetGenreRepository(), GetCommentRepository(), GetRatingRepository(), GetInstrumentRepository(), GetEmptySong())
+func (s *ServiceContainer) GetNewSongFormView() form.NewSongFormView {
+	if s.http.formNewSongFormView != nil {
+		return *s.http.formNewSongFormView
+	}
+	newSongFormView := form.NewAddNewSongFormView(s.GetGenreRepository(), s.GetInstrumentRepository())
+	s.http.formNewSongFormView = &newSongFormView
+	return newSongFormView
 }
 
-func GetSubmitSongRatingForm() form.SubmitSongRatingForm {
-	return form.NewSubmitSongRatingForm(GetRatingRepository())
+func (s *ServiceContainer) GetSongDetailsForm() form.SongDetails {
+	if s.http.formSongDetails != nil {
+		return *s.http.formSongDetails
+	}
+	songDetailsForm := form.NewSongDetailsForm(s.GetGenreRepository(), s.GetCommentRepository(), s.GetRatingRepository(), s.GetInstrumentRepository(), s.GetEmptySong())
+	s.http.formSongDetails = &songDetailsForm
+	return songDetailsForm
 }
 
-func GetSubmitSongCommentForm() form.SubmitCommentForm {
-	return form.NewSubmitCommentForm(GetCommentRepository())
+func (s *ServiceContainer) GetSubmitSongRatingForm() form.SubmitSongRatingForm {
+	if s.http.formSongRating != nil {
+		return *s.http.formSongRating
+	}
+	songRatingForm := form.NewSubmitSongRatingForm(s.GetRatingRepository())
+	s.http.formSongRating = &songRatingForm
+	return songRatingForm
 }
 
-func GetSongEditViewForm() form.SongEditForm {
-	return form.NewSongEditForm(GetGenreRepository(), GetInstrumentRepository(), GetEmptySong())
+func (s *ServiceContainer) GetSubmitSongCommentForm() form.SubmitCommentForm {
+	if s.http.formSongCommentSubmit != nil {
+		return *s.http.formSongCommentSubmit
+	}
+	submitCommentForm := form.NewSubmitCommentForm(s.GetCommentRepository())
+	s.http.formSongCommentSubmit = &submitCommentForm
+	return submitCommentForm
+}
+
+func (s *ServiceContainer) GetSongEditViewForm() form.SongEditForm {
+	if s.http.formSongEditView != nil {
+		return *s.http.formSongEditView
+	}
+	emptySong := s.GetEmptySong()
+	songEditForm := form.NewSongEditForm(s.GetGenreRepository(), s.GetInstrumentRepository(), &emptySong)
+	s.http.formSongEditView = &songEditForm
+	return songEditForm
 }

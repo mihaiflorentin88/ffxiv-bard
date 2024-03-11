@@ -3,13 +3,12 @@ package database
 import (
 	"database/sql"
 	"ffxvi-bard/config"
-	"ffxvi-bard/port/contract"
 	"sync"
 
 	_ "modernc.org/sqlite"
 )
 
-type sqliteDriver struct {
+type SqliteDriver struct {
 	database string
 	path     string
 }
@@ -20,7 +19,7 @@ var (
 	mu       sync.Mutex
 )
 
-func NewSqlDriver(cfg *config.DatabaseConfig) (contract.DatabaseDriverInterface, error) {
+func NewSqlDriver(cfg *config.DatabaseConfig) (*SqliteDriver, error) {
 	var err error
 	once.Do(func() {
 		Instance, err = sql.Open(cfg.Database, cfg.Path)
@@ -31,10 +30,10 @@ func NewSqlDriver(cfg *config.DatabaseConfig) (contract.DatabaseDriverInterface,
 	if err != nil {
 		return nil, err
 	}
-	return &sqliteDriver{database: cfg.Database, path: cfg.Path}, nil
+	return &SqliteDriver{database: cfg.Database, path: cfg.Path}, nil
 }
 
-func (d *sqliteDriver) GetConnection() (*sql.DB, error) {
+func (d *SqliteDriver) GetConnection() (*sql.DB, error) {
 	mu.Lock()
 	defer mu.Unlock()
 	err := Instance.Ping()
@@ -47,7 +46,7 @@ func (d *sqliteDriver) GetConnection() (*sql.DB, error) {
 	return Instance, nil
 }
 
-func (d *sqliteDriver) Execute(query string, args ...interface{}) (sql.Result, error) {
+func (d *SqliteDriver) Execute(query string, args ...interface{}) (sql.Result, error) {
 	db, err := d.GetConnection()
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func (d *sqliteDriver) Execute(query string, args ...interface{}) (sql.Result, e
 	return db.Exec(query, args...)
 }
 
-func (d *sqliteDriver) FetchOne(query string, args ...interface{}) (*sql.Row, error) {
+func (d *SqliteDriver) FetchOne(query string, args ...interface{}) (*sql.Row, error) {
 	db, err := d.GetConnection()
 	if err != nil {
 		return nil, err
@@ -63,7 +62,7 @@ func (d *sqliteDriver) FetchOne(query string, args ...interface{}) (*sql.Row, er
 	return db.QueryRow(query, args...), nil
 }
 
-func (d *sqliteDriver) FetchMany(query string, args ...interface{}) (*sql.Rows, error) {
+func (d *SqliteDriver) FetchMany(query string, args ...interface{}) (*sql.Rows, error) {
 	db, err := d.GetConnection()
 	if err != nil {
 		return nil, err
@@ -71,7 +70,7 @@ func (d *sqliteDriver) FetchMany(query string, args ...interface{}) (*sql.Rows, 
 	return db.Query(query, args...)
 }
 
-func (d *sqliteDriver) Close() {
+func (d *SqliteDriver) Close() {
 	if Instance != nil {
 		Instance.Close()
 	}

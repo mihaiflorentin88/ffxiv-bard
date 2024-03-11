@@ -1,14 +1,14 @@
 package database
 
 import (
-	"ffxvi-bard/port/contract"
+	database "ffxvi-bard/infrastructure/database/sql"
 	"ffxvi-bard/port/dto"
 	"fmt"
 	"strings"
 )
 
 type GenreRepository struct {
-	driver contract.DatabaseDriverInterface
+	driver *database.SqliteDriver
 }
 
 func diffGenres(current, new []int) (toAdd, toRemove []int) {
@@ -31,7 +31,7 @@ func diffGenres(current, new []int) (toAdd, toRemove []int) {
 	return toAdd, toRemove
 }
 
-func NewGenreRepository(driver contract.DatabaseDriverInterface) contract.GenreRepositoryInterface {
+func NewGenreRepository(driver *database.SqliteDriver) *GenreRepository {
 	return &GenreRepository{
 		driver: driver,
 	}

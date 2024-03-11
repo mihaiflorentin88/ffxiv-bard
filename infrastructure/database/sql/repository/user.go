@@ -2,22 +2,22 @@ package database
 
 import (
 	"database/sql"
-	"ffxvi-bard/port/contract"
+	database "ffxvi-bard/infrastructure/database/sql"
 	"ffxvi-bard/port/dto"
 	"fmt"
 	"strings"
 	"time"
 )
 
-type userRepository struct {
-	driver contract.DatabaseDriverInterface
+type UserRepository struct {
+	driver *database.SqliteDriver
 }
 
-func NewUserRepository(driver contract.DatabaseDriverInterface) contract.UserRepositoryInterface {
-	return &userRepository{driver: driver}
+func NewUserRepository(driver *database.SqliteDriver) *UserRepository {
+	return &UserRepository{driver: driver}
 }
 
-func (u *userRepository) FindById(id int64) (*dto.DatabaseUser, error) {
+func (u *UserRepository) FindById(id int64) (*dto.DatabaseUser, error) {
 	query := `
 		SELECT 
     		id,
@@ -73,7 +73,7 @@ func (u *userRepository) FindById(id int64) (*dto.DatabaseUser, error) {
 	return &user, nil
 }
 
-func (u *userRepository) FindByUsername(username string) (*dto.DatabaseUser, error) {
+func (u *UserRepository) FindByUsername(username string) (*dto.DatabaseUser, error) {
 	query := "SELECT * FROM user WHERE username = ?"
 	row, err := u.driver.FetchOne(query, username)
 	if err != nil {
@@ -106,7 +106,7 @@ func (u *userRepository) FindByUsername(username string) (*dto.DatabaseUser, err
 	return &user, nil
 }
 
-func (u *userRepository) FindByEmail(email string) (*dto.DatabaseUser, error) {
+func (u *UserRepository) FindByEmail(email string) (*dto.DatabaseUser, error) {
 	query := "SELECT * FROM user WHERE email = ?"
 	row, err := u.driver.FetchOne(query, email)
 	if err != nil {
@@ -138,7 +138,7 @@ func (u *userRepository) FindByEmail(email string) (*dto.DatabaseUser, error) {
 	return &user, nil
 }
 
-func (u *userRepository) Create(user dto.DatabaseUser) error {
+func (u *UserRepository) Create(user dto.DatabaseUser) error {
 	query := `
 		INSERT INTO user (
 			username, email, name, auth_provider, provider_id, avatar,
@@ -154,7 +154,7 @@ func (u *userRepository) Create(user dto.DatabaseUser) error {
 	return err
 }
 
-func (u *userRepository) Update(user dto.DatabaseUser) error {
+func (u *UserRepository) Update(user dto.DatabaseUser) error {
 	query := `
 		UPDATE user SET
 			auth_provider=?, provider_id=?, avatar=?,
@@ -170,7 +170,7 @@ func (u *userRepository) Update(user dto.DatabaseUser) error {
 	return err
 }
 
-func (u *userRepository) FindByProperties(user dto.DatabaseUser) ([]dto.DatabaseUser, error) {
+func (u *UserRepository) FindByProperties(user dto.DatabaseUser) ([]dto.DatabaseUser, error) {
 	var users []dto.DatabaseUser
 	baseQuery := "SELECT * FROM user WHERE "
 	var conditions []string

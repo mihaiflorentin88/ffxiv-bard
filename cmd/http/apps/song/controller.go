@@ -3,9 +3,9 @@ package song
 import (
 	"errors"
 	"ffxvi-bard/cmd/http/apps/song/form"
+	"ffxvi-bard/cmd/http/utils"
 	"ffxvi-bard/domain/song"
 	"ffxvi-bard/domain/user"
-	"ffxvi-bard/port/contract"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -14,8 +14,8 @@ import (
 
 type Controller struct {
 	Song                 song.Song
-	ErrorHandler         contract.HttpErrorHandlerInterface
-	Renderer             contract.HttpRenderer
+	ErrorHandler         utils.ErrorHandler
+	Renderer             utils.Renderer
 	addSongFormProcessor form.SubmitSongForm
 	songListForm         form.SongList
 	newSongFormView      form.NewSongFormView
@@ -25,7 +25,7 @@ type Controller struct {
 	songEditForm         form.SongEditForm
 }
 
-func NewSongController(song song.Song, errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer,
+func NewSongController(song song.Song, errorHandler utils.ErrorHandler, renderer utils.Renderer,
 	addSongFormProcessor form.SubmitSongForm, songListForm form.SongList, newSongFormView form.NewSongFormView,
 	songDetailsForm form.SongDetails, submitSongRatingForm form.SubmitSongRatingForm, submitCommentForm form.SubmitCommentForm,
 	songEditForm form.SongEditForm) Controller {

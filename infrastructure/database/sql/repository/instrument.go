@@ -1,17 +1,17 @@
 package database
 
 import (
-	"ffxvi-bard/port/contract"
+	database "ffxvi-bard/infrastructure/database/sql"
 	"ffxvi-bard/port/dto"
 	"fmt"
 	"strings"
 )
 
 type InstrumentRepository struct {
-	driver contract.DatabaseDriverInterface
+	driver *database.SqliteDriver
 }
 
-func NewInstrumentRepository(driver contract.DatabaseDriverInterface) contract.InstrumentRepositoryInterface {
+func NewInstrumentRepository(driver *database.SqliteDriver) *InstrumentRepository {
 	return &InstrumentRepository{
 		driver: driver,
 	}

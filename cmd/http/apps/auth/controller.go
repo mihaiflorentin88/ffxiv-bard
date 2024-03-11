@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"ffxvi-bard/cmd/http/utils"
 	"ffxvi-bard/domain/user"
 	"ffxvi-bard/port/contract"
 	"ffxvi-bard/port/dto"
@@ -10,14 +11,14 @@ import (
 )
 
 type Controller struct {
-	ErrorHandler   contract.HttpErrorHandlerInterface
-	Renderer       contract.HttpRenderer
+	ErrorHandler   utils.ErrorHandler
+	Renderer       utils.Renderer
 	Oauth          contract.Oauth
 	UserRepository contract.UserRepositoryInterface
 }
 
-func NewAuthController(errorHandler contract.HttpErrorHandlerInterface, renderer contract.HttpRenderer, oauth contract.Oauth, userRepository contract.UserRepositoryInterface) *Controller {
-	return &Controller{
+func NewAuthController(errorHandler utils.ErrorHandler, renderer utils.Renderer, oauth contract.Oauth, userRepository contract.UserRepositoryInterface) Controller {
+	return Controller{
 		ErrorHandler:   errorHandler,
 		Renderer:       renderer,
 		Oauth:          oauth,

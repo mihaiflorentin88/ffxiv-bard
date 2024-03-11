@@ -85,7 +85,7 @@ func (s *SubmitSongForm) Submit(title string, artist string, ensembleSize string
 	if err != nil {
 		return 0, err
 	}
-	newSong, err := song.FromNewSongForm(songDTO, s.songRepository, s.genreRepository, s.songProcessor, &s.emptyUser, &s.emptyRating, &s.emptyGenre, &s.emptyComment, &s.emptyInstrument)
+	newSong, err := song.FromNewSongForm(songDTO, s.songRepository, s.genreRepository, s.songProcessor, s.emptyUser, s.emptyRating, s.emptyGenre, s.emptyComment, s.emptyInstrument)
 	if err != nil {
 		return 0, err
 	}

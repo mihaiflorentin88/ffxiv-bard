@@ -2,6 +2,7 @@ package cli
 
 import (
 	"ffxvi-bard/cmd/http"
+	"ffxvi-bard/container"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +15,8 @@ var httpCmd = &cobra.Command{
 		port, _ := cmd.Flags().GetInt("port")
 		poolSize, _ := cmd.Flags().GetInt("pool")
 		if start {
-			http.Server(port, poolSize)
+			serviceContainer := container.NewServiceContainer()
+			http.StartServer(port, poolSize, serviceContainer)
 		}
 	},
 }

@@ -2,16 +2,16 @@ package database
 
 import (
 	"errors"
-	"ffxvi-bard/port/contract"
+	database "ffxvi-bard/infrastructure/database/sql"
 	"ffxvi-bard/port/dto"
 	"fmt"
 )
 
 type RatingRepository struct {
-	driver contract.DatabaseDriverInterface
+	driver *database.SqliteDriver
 }
 
-func NewRatingRepository(driver contract.DatabaseDriverInterface) contract.RatingRepositoryInterface {
+func NewRatingRepository(driver *database.SqliteDriver) *RatingRepository {
 	return &RatingRepository{
 		driver: driver,
 	}

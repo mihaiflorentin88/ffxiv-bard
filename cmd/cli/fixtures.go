@@ -20,7 +20,8 @@ var FixturesCMD = &cobra.Command{
 			fixtures.GenerateFixtures(count)
 		}
 		if execute {
-			databaseDriver := container.GetDatabaseDriver()
+			serviceContainer := container.NewServiceContainer()
+			databaseDriver := serviceContainer.GetDatabaseDriver()
 			fixtures := fixtures.NewFixtures(databaseDriver)
 			fixtures.Execute()
 		}

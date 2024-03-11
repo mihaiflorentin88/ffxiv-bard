@@ -36,8 +36,8 @@ type User struct {
 	Date              date.Date
 }
 
-func NewEmptyUser(repository contract.UserRepositoryInterface) *User {
-	return &User{Repository: repository}
+func NewEmptyUser(repository contract.UserRepositoryInterface) User {
+	return User{Repository: repository}
 }
 
 func (u *User) HydrateByID() error {

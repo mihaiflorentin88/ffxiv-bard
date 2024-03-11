@@ -63,10 +63,10 @@ func (s *SongDetails) GetAvailableStars() []int {
 	return stars
 }
 
-func NewSongDetailsForm(genreRepository contract.GenreRepositoryInterface, commentRepository contract.CommentRepositoryInterface, ratingRepository contract.RatingRepositoryInterface, instrumentRepository contract.InstrumentRepositoryInterface, song *song.Song) SongDetails {
+func NewSongDetailsForm(genreRepository contract.GenreRepositoryInterface, commentRepository contract.CommentRepositoryInterface, ratingRepository contract.RatingRepositoryInterface, instrumentRepository contract.InstrumentRepositoryInterface, song song.Song) SongDetails {
 	return SongDetails{
 		genreRepository:      genreRepository,
-		song:                 *song,
+		song:                 song,
 		commentRepository:    commentRepository,
 		ratingRepository:     ratingRepository,
 		instrumentRepository: instrumentRepository,

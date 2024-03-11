@@ -59,10 +59,10 @@ func getDefaultTemplates() []string {
 	}
 }
 
-type renderer struct {
+type Renderer struct {
 	StaticFS     *embed.FS
 	Templates    []string
-	ErrorHandler contract.HttpErrorHandlerInterface
+	ErrorHandler ErrorHandler
 }
 
 type RenderedData struct {
@@ -70,8 +70,8 @@ type RenderedData struct {
 	Data interface{} // can be anything
 }
 
-func NewRenderer(errorHandler contract.HttpErrorHandlerInterface) contract.HttpRenderer {
-	r := &renderer{
+func NewRenderer(errorHandler ErrorHandler) Renderer {
+	r := Renderer{
 		StaticFS:     GetStaticFS(),
 		ErrorHandler: errorHandler,
 	}
@@ -79,17 +79,17 @@ func NewRenderer(errorHandler contract.HttpErrorHandlerInterface) contract.HttpR
 	return r
 }
 
-func (r *renderer) AddTemplate(file string) contract.HttpRenderer {
+func (r *Renderer) AddTemplate(file string) contract.HttpRenderer {
 	r.Templates = append(r.Templates, file)
 	return r
 }
 
-func (r *renderer) StartClean() contract.HttpRenderer {
+func (r *Renderer) StartClean() contract.HttpRenderer {
 	r.Templates = getDefaultTemplates()
 	return r
 }
 
-func (r *renderer) RemoveTemplate(file string) contract.HttpRenderer {
+func (r *Renderer) RemoveTemplate(file string) contract.HttpRenderer {
 	for i, f := range r.Templates {
 		if f == file {
 			r.Templates = slices.Delete(r.Templates, i, i+1)
@@ -99,7 +99,7 @@ func (r *renderer) RemoveTemplate(file string) contract.HttpRenderer {
 	return r
 }
 
-func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
+func (r *Renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 	tmpl := template.New("base")
 	var err error
 	for _, file := range r.Templates {
@@ -128,7 +128,7 @@ func (r *renderer) Render(c *gin.Context, data interface{}, StatusCode int) {
 	}
 }
 
-func (r *renderer) RegisterStatic(router *gin.Engine) {
+func (r *Renderer) RegisterStatic(router *gin.Engine) {
 	cssAssets := loadAssets("resource/css")
 	jsAssets := loadAssets("resource/js")
 	imgAssets := loadAssets("resource/img")
@@ -175,7 +175,7 @@ func (r *renderer) RegisterStatic(router *gin.Engine) {
 	})
 }
 
-//func (r *renderer) RegisterStatic(router *gin.Engine) {
+//func (r *Renderer) RegisterStatic(router *gin.Engine) {
 //	cssFS, err := fs.Sub(r.StaticFS, "resource/css")
 //	if err != nil {
 //		panic("Cannot parse the css")
