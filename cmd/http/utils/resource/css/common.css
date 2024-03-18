@@ -31,6 +31,7 @@ h1,h2,h3,h4,h5,h6{
 body {
     margin: 0; /* Remove default margin */
     padding: 0; /* Remove default padding */
+    /* Cache-Control: max-age=3600 */
     background-image: url('/_resource/img/bard1.jpg'); /* Path to your background image */
     background-size: cover; /* Ensure it covers the entire viewport */
     background-position: center center; /* Center the image */

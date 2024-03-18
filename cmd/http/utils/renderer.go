@@ -140,6 +140,7 @@ func (r *Renderer) RegisterStatic(router *gin.Engine) {
 			c.Status(http.StatusNotFound)
 			return
 		}
+		c.Header("Cache-Control", "public, max-age=3600")
 		c.Data(http.StatusOK, "text/css", content)
 	})
 
@@ -150,6 +151,7 @@ func (r *Renderer) RegisterStatic(router *gin.Engine) {
 			c.Status(http.StatusNotFound)
 			return
 		}
+		c.Header("Cache-Control", "public, max-age=3600")
 		c.Data(http.StatusOK, "application/javascript", content)
 	})
 
@@ -169,9 +171,9 @@ func (r *Renderer) RegisterStatic(router *gin.Engine) {
 			mimeType = "image/jpeg"
 		case ".gif":
 			mimeType = "image/gif"
-			// Add more cases as needed for different file types
 		}
-		c.Data(http.StatusOK, mimeType, content) // Use the correct MIME type
+		c.Header("Cache-Control", "public, max-age=7200")
+		c.Data(http.StatusOK, mimeType, content)
 	})
 }
 
