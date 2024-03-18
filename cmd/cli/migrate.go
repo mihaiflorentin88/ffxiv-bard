@@ -15,8 +15,7 @@ var migrateCMD = &cobra.Command{
 		if !up && !down {
 			panic("Please provide a command type. Supported commands `up`, `down`")
 		}
-		serviceContainer := container.NewServiceContainer()
-		driver := serviceContainer.GetMigrationDriver()
+		driver := container.Load.MigrationDriver()
 		var command string
 		if up {
 			command = "up"

@@ -23,11 +23,11 @@ type InfrastructureContainer struct {
 	instrumentRepository *repository.InstrumentRepository
 }
 
-func (s *ServiceContainer) GetDatabaseDriver() *database.SqliteDriver {
+func (s *ServiceContainer) DatabaseDriver() *database.SqliteDriver {
 	if s.infrastructure.databaseDriver != nil {
 		return s.infrastructure.databaseDriver
 	}
-	config := s.GetConfig()
+	config := s.Config()
 	driver, err := database.NewSqlDriver(&config.Database)
 	if err != nil {
 		panic(fmt.Sprintf("Cannot access UserRepository. Reason %s", err))
@@ -36,17 +36,17 @@ func (s *ServiceContainer) GetDatabaseDriver() *database.SqliteDriver {
 	return driver
 }
 
-func (s *ServiceContainer) GetMigrationDriver() *migration.MigrationDriver {
+func (s *ServiceContainer) MigrationDriver() *migration.MigrationDriver {
 	if s.infrastructure.migrationDriver != nil {
 		return s.infrastructure.migrationDriver
 	}
-	config := s.GetConfig()
+	config := s.Config()
 	driver := migration.NewMigrationDriver(&config.Database)
 	s.infrastructure.migrationDriver = driver
 	return driver
 }
 
-func (s *ServiceContainer) GetFileSystem() *filesystem.FileSystem {
+func (s *ServiceContainer) FileSystem() *filesystem.FileSystem {
 	if s.infrastructure.filesystem != nil {
 		return s.infrastructure.filesystem
 	}
@@ -55,67 +55,67 @@ func (s *ServiceContainer) GetFileSystem() *filesystem.FileSystem {
 	return _filesystem
 }
 
-func (s *ServiceContainer) GetDiscordAuth() *oauth.DiscordOauth {
+func (s *ServiceContainer) DiscordAuth() *oauth.DiscordOauth {
 	if s.infrastructure.oauth != nil {
 		return s.infrastructure.oauth
 	}
-	config := s.GetConfig()
+	config := s.Config()
 	discordOauth := oauth.NewDiscordOauth(&config.Discord)
 	s.infrastructure.oauth = discordOauth
 	return discordOauth
 }
 
-func (s *ServiceContainer) GetUserRepository() *repository.UserRepository {
+func (s *ServiceContainer) UserRepository() *repository.UserRepository {
 	if s.infrastructure.userRepository != nil {
 		return s.infrastructure.userRepository
 	}
-	userRepository := repository.NewUserRepository(s.GetDatabaseDriver())
+	userRepository := repository.NewUserRepository(s.DatabaseDriver())
 	s.infrastructure.userRepository = userRepository
 	return userRepository
 }
 
-func (s *ServiceContainer) GetGenreRepository() *repository.GenreRepository {
+func (s *ServiceContainer) GenreRepository() *repository.GenreRepository {
 	if s.infrastructure.genreRepository != nil {
 		return s.infrastructure.genreRepository
 	}
-	genreRepository := repository.NewGenreRepository(s.GetDatabaseDriver())
+	genreRepository := repository.NewGenreRepository(s.DatabaseDriver())
 	s.infrastructure.genreRepository = genreRepository
 	return genreRepository
 }
 
-func (s *ServiceContainer) GetSongRepository() contract.SongRepositoryInterface {
+func (s *ServiceContainer) SongRepository() contract.SongRepositoryInterface {
 	if s.infrastructure.songRepository != nil {
 		return s.infrastructure.songRepository
 	}
-	songRepository := repository.NewSongRepository(s.GetDatabaseDriver())
+	songRepository := repository.NewSongRepository(s.DatabaseDriver())
 	s.infrastructure.songRepository = songRepository
 	return songRepository
 }
 
-func (s *ServiceContainer) GetRatingRepository() *repository.RatingRepository {
+func (s *ServiceContainer) RatingRepository() *repository.RatingRepository {
 	if s.infrastructure.ratingRepository != nil {
 		return s.infrastructure.ratingRepository
 	}
-	ratingRepository := repository.NewRatingRepository(s.GetDatabaseDriver())
+	ratingRepository := repository.NewRatingRepository(s.DatabaseDriver())
 	s.infrastructure.ratingRepository = ratingRepository
 	return ratingRepository
 }
 
-func (s *ServiceContainer) GetCommentRepository() *repository.CommentRepository {
+func (s *ServiceContainer) CommentRepository() *repository.CommentRepository {
 	if s.infrastructure.commentRepository != nil {
 		return s.infrastructure.commentRepository
 	}
-	commentRepository := repository.NewCommentRepository(s.GetDatabaseDriver())
+	commentRepository := repository.NewCommentRepository(s.DatabaseDriver())
 	s.infrastructure.commentRepository = commentRepository
 	return commentRepository
 }
 
-func (s *ServiceContainer) GetInstrumentRepository() *repository.InstrumentRepository {
+func (s *ServiceContainer) InstrumentRepository() *repository.InstrumentRepository {
 	if s.infrastructure.instrumentRepository != nil {
 		return s.infrastructure.instrumentRepository
 	}
 
-	instrumentRepository := repository.NewInstrumentRepository(s.GetDatabaseDriver())
+	instrumentRepository := repository.NewInstrumentRepository(s.DatabaseDriver())
 	s.infrastructure.instrumentRepository = instrumentRepository
 	return instrumentRepository
 }

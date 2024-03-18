@@ -9,20 +9,20 @@ import (
 	"time"
 )
 
-func RegisterRoutes(router *gin.Engine, serviceContainer *container.ServiceContainer) {
-	httpRenderer := serviceContainer.GetHttpRenderer()
+func RegisterRoutes(router *gin.Engine) {
+	httpRenderer := container.Load.HttpRenderer()
 	httpRenderer.RegisterStatic(router)
-	serviceContainer.GetMainRouter().RegisterRoutes(router)
-	serviceContainer.GetAuthRouter().RegisterRoutes(router)
-	serviceContainer.GetSongRouter().RegisterRoutes(router)
+	container.Load.MainRouter().RegisterRoutes(router)
+	container.Load.AuthRouter().RegisterRoutes(router)
+	container.Load.SongRouter().RegisterRoutes(router)
 }
 
-func StartServer(port int, poolSize int, serviceContainer *container.ServiceContainer) {
+func StartServer(port int, poolSize int) {
 	runtime.GOMAXPROCS(poolSize)
-	router := serviceContainer.GetGinRouter()
-	authMiddleware := serviceContainer.GetAuthMiddleware()
+	router := container.Load.GinRouter()
+	authMiddleware := container.Load.AuthMiddleware()
 	router.Use(authMiddleware.GetLoggedUser())
-	RegisterRoutes(router, serviceContainer)
+	RegisterRoutes(router)
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%v", port),
 		Handler:        router,

@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var Load *ServiceContainer
+
 type ServiceContainer struct {
 	config         *config.Config
 	domain         *DomainContainer
@@ -20,7 +22,7 @@ func NewServiceContainer() *ServiceContainer {
 	}
 }
 
-func (s *ServiceContainer) GetConfig() *config.Config {
+func (s *ServiceContainer) Config() *config.Config {
 	if s.config != nil {
 		return s.config
 	}

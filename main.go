@@ -6,9 +6,10 @@ import (
 )
 
 func main() {
-	cli.Execute()
 	serviceContainer := container.NewServiceContainer()
-	connection := serviceContainer.GetDatabaseDriver()
+	container.Load = serviceContainer
+	cli.Execute()
+	connection := container.Load.DatabaseDriver()
 	defer connection.Close()
 
 	//signals := make(chan os.Signal, 1)
